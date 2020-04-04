@@ -15,7 +15,7 @@ IN_BOX = 3
 IN_BAG = 4
 
 # States for 1-tile
-UNASSIGNED = -1
+UNASSIGNED = 2
 PLAYER_1 = 0
 PLAYER_2 = 1
 
