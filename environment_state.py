@@ -1,15 +1,27 @@
+from constants import *
 from collections import Counter
 
 class EnvironmentState:
   def __init__(self, tile_locations, mosaics, triangles, mosaic_bonuses,
                floors, one_piece, circles, center):
+        # Map from colors, to map from location to counts.
         self.tile_locations = tile_locations
+        # List containing 2 5x5 arrays of colors.
         self.mosaics = mosaics
+        # List containing 2 "5-triangle" arrays of colors
+        # (ie [[0],[2,3],[1,1,2],[0,4,3,2],[4,4,1,2,2]])
         self.triangles = triangles
+        # List containing 2 maps from bonus type to data. For five of a kind bonus, this is
+        # a map from colors to counts. For others, this is a 5-item array of counts
+        # corresponding to row/col index.
         self.mosaic_bonuses = mosaic_bonuses
+        # List containing 2 7-item arrays of colors.
         self.floors = floors
+        # Who is in posession of the going-first piece.
         self.one_piece = one_piece
+        # 5x4 array of colors.
         self.circles = circles
+        # array of colors.
         self.center = center
   
   def __hash__(self):
