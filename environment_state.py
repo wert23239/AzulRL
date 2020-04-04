@@ -33,6 +33,7 @@ class EnvironmentState:
         )
   
   def numbers_list(self):
+        # Handle the tile locations list first
         tile_locations_list = [
          [
           color,
@@ -43,12 +44,24 @@ class EnvironmentState:
           self.tile_locations[color][IN_BAG]
          ]
          for color in self.tile_locations]
+        numbers_list = []
+        for l in tile_locations_list:
+          numbers_list += l
+
+        # Next, the mosaics list and the triangles list.
         mosaics_list = [c for p in self.mosaics for r in p for c in r]
         triangles_list = [c for p in self.triangles for r in p for c in r]
+        numbers_list += mosaics_list + triangles_list
+
+        # Next, the mosaic bonuses list.
         mosaic_bonuses_list = [
           [p[FIVE_OF_A_KIND][c] for c in p[FIVE_OF_A_KIND]] +
           p[COLUMN_BONUS] + p[ROW_BONUS]
           for p in self.mosaic_bonuses]
+        for l in mosaic_bonuses_list:
+          numbers_list += l
+
+        # Finally, the floors list, circles list, and center list.
         floors_list = [i for p in self.floors for i in p]
         circles_counters = [Counter(c) for c in self.circles]
         center_counter = Counter(self.center)
@@ -59,12 +72,6 @@ class EnvironmentState:
             circles_array[i][color-1] = circles_counters[i][color]
             center_list[color-1] = center_counter[color]
         circles_list = [column for row in circles_array for column in row]
-        numbers_list = []
-        for l in tile_locations_list:
-          numbers_list += l
-        numbers_list += mosaics_list + triangles_list
-        for l in mosaic_bonuses_list:
-          numbers_list += l
         numbers_list += \
           floors_list + [self.one_piece] + circles_list + center_list
         return numbers_list
