@@ -55,13 +55,14 @@ class Environment:
     return self.state, self.turn, set(self.possible_moves)
   
   def move(self, action):
+    reward = 0
     # If choosing from the center, we may need to pay a penalty. Either way, get
     # the number of tiles chosen and remove them from the center.
     if action.circle == 5:
       if self.state.one_piece == UNASSIGNED:
         self.state.one_piece = self.turn
         reward += self.add_tiles_to_floor(ONE_TILE, 1)
-      tile_counter = Counter(self.center)
+      tile_counter = Counter(self.state.center)
       num_tiles = tile_counter[action.color]
       self.remove_from_center(action.color)
     # Get the number of tiles chosen and dump the others into the center.
@@ -71,7 +72,6 @@ class Environment:
       self.circle_remains_to_center(action.color, action.circle, tile_counter)
 
     # Add tiles to floor or row.
-    reward = 0
     if action.row == 5:
       reward += self.add_tiles_to_floor(action.color, num_tiles)
     else:
@@ -110,10 +110,11 @@ class Environment:
     # Put tiles from both players' floors into the box.
     for p in self.state.floors:
       for i, color in enumerate(p):
-        if color != NO_COLOR:
+        if color != NO_COLOR and color != ONE_TILE:
           p[i] = NO_COLOR
           self.state.tile_locations[color][OUT_OF_PLAY_TEMP] -= 1
           self.state.tile_locations[color][IN_BOX] += 1
+    self.deal_tiles()
 
   def end_of_round(self):
     for c in self.state.circles:
@@ -138,16 +139,18 @@ class Environment:
       if c == NO_COLOR:
         num_tiles -= 1
         floor[i] = color
-        self.state.tile_locations[color][IN_PLAY] -= 1
-        self.state.tile_locations[color][OUT_OF_PLAY_TEMP] += 1
+        if color != ONE_TILE:
+          self.state.tile_locations[color][IN_PLAY] -= 1
+          self.state.tile_locations[color][OUT_OF_PLAY_TEMP] += 1
         reward += floor_scores[i]
       if num_tiles == 0:
         break
     # If we run out of space on the floor of the board, the remaining tiles
     # go in the box.
-    for i in range(num_tiles):
-      self.state.tile_locations[color][IN_PLAY] -= 1
-      self.state.tile_locations[color][IN_BOX] += 1
+    if color != ONE_TILE:
+      for i in range(num_tiles):
+        self.state.tile_locations[color][IN_PLAY] -= 1
+        self.state.tile_locations[color][IN_BOX] += 1
 
     return reward
 
