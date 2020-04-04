@@ -1,0 +1,25 @@
+# Colors
+NO_COLOR = 0
+COLOR_A = 1
+COLOR_B = 2
+COLOR_C = 3
+COLOR_D = 4
+COLOR_E = 5
+ONE_TILE = 6
+
+# Tile states
+IN_PLAY = 0
+OUT_OF_PLAY = 1
+OUT_OF_PLAY_TEMP = 2
+IN_BOX = 3
+IN_BAG = 4
+
+# States for 1-tile
+UNASSIGNED = -1
+PLAYER_1 = 0
+PLAYER_2 = 1
+
+# Mosaic Bonuses
+FIVE_OF_A_KIND = 0
+COLUMN_BONUS = 1
+ROW_BONUS = 2
