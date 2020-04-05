@@ -4,13 +4,13 @@ from collections import deque
 from keras import Sequential
 from keras.layers import Dense
 from keras.optimizers import Adam
-from numpy import argmax
+from numpy import argmax,array
 
-from constants import NUMBER_OF_CIRCLES, NUMBER_OF_ROWS
-from random_or_override import RandomOrOverride
 from action import Action
+from constants import NUMBER_OF_CIRCLES, NUMBER_OF_COLORS, NUMBER_OF_ROWS
+from random_or_override import RandomOrOverride
 
-STATE_SPACE = 164
+STATE_SPACE = 185
 ACTION_SPACE = 180
 BATCH_SIZE = 32
 
@@ -32,29 +32,29 @@ class DQNAgent():
     def action(self,state,possible_actions,_):
         self.epsilon *= self.epsilon_decay
         self.epsilon = max(self.epsilon_min, self.epsilon)
-        if self.random_or_override.random_range_cont(0,1) < self.epsilon:
+        if self.random_or_override.random_range_cont() < self.epsilon:
             return possible_actions.pop() #Fix to random
-        return self.__get_possible_action(self.model.predict(state)[0],possible_actions) 
+        observable_state = state.to_observable_state()
+        return self.__get_possible_action(self.model.predict(array([observable_state]))[0],possible_actions) 
 
     def __get_possible_action(self,prediction,possible_actions):
-        prediction_list = prediction.argsort()
-        while(prediction):
+        prediction_list = prediction.argsort().tolist()
+        while(len(prediction_list)):
             action_number = prediction_list.pop()
             action = self.__convert_action_num(action_number)
             if action in possible_actions:
-                return action
-            
+                return action    
         x = 5/0
 
     def __convert_action_num(self,action_number): #TEST
         circle = action_number // (NUMBER_OF_COLORS*NUMBER_OF_ROWS)
-        action_number = action_number // (NUMBER_OF_COLORS*NUMBER_OF_ROWS)
-        color = action_number // (NUMBER_OF_ROWS)
-        row = action_number % row
-        return Actionn(circle,color,row)
+        action_number = action_number % (NUMBER_OF_COLORS*NUMBER_OF_ROWS)
+        color = action_number // (NUMBER_OF_ROWS) + 1
+        row = action_number % NUMBER_OF_ROWS
+        return Action(circle,color,row)
 
     def save(self,example):
-        self.memory.extend(example)
+        self.memory.append(example)
 
 
     def __replay(self):
@@ -68,9 +68,10 @@ class DQNAgent():
             if sample.done:
                 target[0][example.action] = example.reward
             else:
-                action = self.__get_possible_action(self.target_model.predict(example.new_state)[0],example.possible_action)
+                prediction = self.target_model.predict(example.new_state)[0]
+                action = self.__get_possible_action(prediction,example.possible_action)
                 #Find max w/ possible actions and think about MDP's here
-                Q_future = self.target_model.predict(example.new_state)[0][action] 
+                Q_future = prediction 
                 target[0][example.action] = example.reward + Q_future * self.discount_factor
             self.model.fit(example.state,target, epoch=1, verbose=0)
 

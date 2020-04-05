@@ -4,6 +4,7 @@ from random_or_override import RandomOrOverride
 from random_model import RandomModel
 from human_player import HumanPlayer
 from example import Example
+import numpy as np
 import sys
 
 """
@@ -31,7 +32,7 @@ def main(player1_type, player2_type):
     while True:
         state, turn, possible_actions = e.reset()
         done = False
-        previous_state = None
+        previous_state = state # FIX LATER
         while not done:
             if turn == 1:
                 player = m1
@@ -39,12 +40,7 @@ def main(player1_type, player2_type):
                 player = m2
             action = player.action(state, possible_actions, turn)
             state, turn, possible_actions, reward, done = e.move(action)
-<<<<<<< HEAD
-            example = Example(reward,action,possible_actions,previous_state,state,done)
-=======
-            example = Example(reward, action, state,
-                              previous_action, previous_state)
->>>>>>> 1e26098d53e08e5386a190b4c68b9bd51c01629e
+            example = Example(reward,action,possible_actions,previous_state.to_observable_state(),state.to_observable_state(),done)
             player.save(example)
             previous_state = state
         print("round over")

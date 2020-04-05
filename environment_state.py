@@ -1,5 +1,6 @@
 from constants import *
 from collections import Counter
+import numpy as np
 
 class EnvironmentState:
   def __init__(self, tile_locations, mosaics, triangles, mosaic_bonuses,
@@ -44,7 +45,7 @@ class EnvironmentState:
             self.tile_locations, self.mosaics, self.triangles, self.mosaic_bonuses, self.floors, self.one_piece, self.circles, self.center
         )
   
-  def numbers_list(self):
+  def to_observable_state(self):
         # Handle the tile locations list first
         tile_locations_list = [
          [
@@ -86,4 +87,4 @@ class EnvironmentState:
         circles_list = [column for row in circles_array for column in row]
         numbers_list += \
           floors_list + [self.one_piece] + circles_list + center_list
-        return numbers_list
+        return np.array(numbers_list)
