@@ -16,8 +16,9 @@ BATCH_SIZE = 32
 
 
 class DQNAgent():
-    def __init__(self, random_or_override):
+    def __init__(self, random_or_override, train=True):
         self.random_or_override = random_or_override
+        self.train=train
         self.memory = deque(maxlen=2000)
         self.discount_factor = .95
         # exploration vs. exploitation  params
@@ -29,14 +30,14 @@ class DQNAgent():
         self.model = self.__create_model()
         self.target_model = self.__create_model()
 
-    def action(self,state,possible_actions,_):
+    def action(self,state,possible_actions,_,train):
         self.epsilon *= self.epsilon_decay
         self.epsilon = max(self.epsilon_min, self.epsilon)
-        if self.random_or_override.random_range_cont() < self.epsilon:
+        if train and self.random_or_override.random_range_cont() < self.epsilon:
             l = list(possible_actions)
             return self.random_or_override.random_sample(l, 1)[0]
         observable_state = state.to_observable_state()
-        return self.__get_possible_action(self.model.predict(array([observable_state]))[0],possible_actions) 
+        return self.__get_possible_action(self.model.predict(array([observable_state]))[0],possible_actions)
 
     def __get_possible_action(self,prediction,possible_actions):
         prediction_list = prediction.argsort().tolist()
@@ -45,7 +46,7 @@ class DQNAgent():
             action = self.__convert_action_num(action_number)
             if action in possible_actions:
                 return action
-        raise Exception 
+        raise Exception
 
     def __convert_action_num(self,action_number): #TEST
         circle = action_number // (NUMBER_OF_COLORS*NUMBER_OF_ROWS)
@@ -65,13 +66,13 @@ class DQNAgent():
         samples = random.sample(self.memory, batch_size)
         for sample in samples:
             example = sample
-            target = self.target_model.predict(example.state) 
+            target = self.target_model.predict(example.state)
             if sample.done:
                 target[0][example.action] = example.reward
             else:
                 prediction = self.target_model.predict(example.new_state)[0]
                 action = self.__get_possible_action(prediction,example.possible_action)
-                Q_future = action 
+                Q_future = action
                 target[0][example.action] = example.reward + Q_future * self.discount_factor
             self.model.fit(example.state,target, epoch=1, verbose=0)
 
