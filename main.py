@@ -38,9 +38,10 @@ def main(player1_type, player2_type):
                 player = m1
             else:
                 player = m2
-            action = player.action(state, possible_actions)
+            action = player.action(state, possible_actions, turn)
             state, turn, possible_actions, reward, done = e.move(action)
-            example = Example(reward, action, state, previous_action, previous_state)
+            example = Example(reward, action, state,
+                              previous_action, previous_state)
             player.save(example)
             previous_action = action
             previous_state = state
