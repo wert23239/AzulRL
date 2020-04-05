@@ -6,6 +6,7 @@ from keras.optimizers import Adam
 from keras.layers import Dense
 from keras import Sequential
 from collections import deque
+import random
 
 
 STATE_SPACE = 215
