@@ -1,8 +1,6 @@
 import sys
 
 import numpy as np
-from keras.metrics import accuracy
-
 from DQN_agent import DQNAgent
 from environment import Environment
 from example import Example

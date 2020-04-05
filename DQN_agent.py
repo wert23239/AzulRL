@@ -10,7 +10,7 @@ from action import Action
 from constants import NUMBER_OF_CIRCLES, NUMBER_OF_COLORS, NUMBER_OF_ROWS
 from random_or_override import RandomOrOverride
 
-STATE_SPACE = 185
+STATE_SPACE = 215
 ACTION_SPACE = 180
 BATCH_SIZE = 64
 TRAIN_AMOUNT = 5
@@ -99,9 +99,9 @@ class DQNAgent():
 
     def __create_model(self):
         model = Sequential()
-        model.add(Dense(24, input_dim=STATE_SPACE, activation='relu'))
-        model.add(Dense(48, activation="relu"))
-        model.add(Dense(24, activation='relu'))
+        model.add(Dense(128, input_dim=STATE_SPACE, activation='relu'))
+        model.add(Dense(64, activation="relu"))
+        model.add(Dense(32, activation='relu'))
         model.add(Dense(ACTION_SPACE))
         model.compile(loss="mean_squared_error",
                       optimizer=Adam(lr=self.learning_rate))
