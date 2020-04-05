@@ -1,6 +1,11 @@
 import sys
 
 import numpy as np
+<<<<<<< HEAD
+from keras.metrics import accuracy
+
+=======
+>>>>>>> 9c1c13e6de8bedb83c19af847c629c9cb3a74c29
 from DQN_agent import DQNAgent
 from environment import Environment
 from example import Example
@@ -101,7 +106,6 @@ def main(player1_type, player2_type, train_bots):
             m1.train()
             m2.train()
         if number_of_games % accuracy_interval == 0:
-            print("Epoch:",number_of_games)
             assess_model(m1, random, e, "player 1")
             assess_model(m2, random, e, "player 2")
 
