@@ -85,7 +85,8 @@ class DQNAgent():
         if self.train_count % TRAIN_AMOUNT == 0:
             self.__target_train()
             print("epilson",self.epsilon)
-            #self.model.save_weights('DQN_weights.h5')
+            self.model.save_weights('DQN_weights.h5')
+            self.model.save_weights('DQN_target_weights.h5')
 
     def __target_train(self):
         weights = self.model.get_weights()
