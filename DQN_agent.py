@@ -1,31 +1,30 @@
-from random_or_override import RandomOrOverride
-from constants import NUMBER_OF_CIRCLES, NUMBER_OF_COLORS, NUMBER_OF_ROWS
-from action import Action
-from numpy import argmax, array
-from keras.optimizers import Adam
-from keras.layers import Dense
-from keras import Sequential
-from collections import deque
 import random
+from collections import deque
 
+from keras import Sequential
+from keras.layers import Dense
+from keras.optimizers import Adam
+from numpy import argmax, array
 
-STATE_SPACE = 185
+from action import Action
+from constants import NUMBER_OF_CIRCLES, NUMBER_OF_COLORS, NUMBER_OF_ROWS
+from random_or_override import RandomOrOverride
+
+STATE_SPACE =  185
 ACTION_SPACE = 180
-BATCH_SIZE = 128
-TRAIN_AMOUNT = 5
-EPOCHS = 1
-
 
 class DQNAgent():
-    def __init__(self, random_or_override, human=False):
+    def __init__(self, random_or_override,hyper_parameters, human=False):
+        self.batch_size =  hyper_parameters.batch_size
         self.random_or_override = random_or_override
-        self.memory = deque(maxlen=5000)
-        self.discount_factor = 0.85
+        self.memory = deque(maxlen=hyper_parameters.memory_length)
+        self.discount_factor = hyper_parameters.discount_factor
         # exploration vs. exploitation  params
         self.epsilon = 1.0
-        self.epsilon_min = 0.01
-        self.epsilon_decay = 0.999
-        self.learning_rate = 0.005
+        self.epsilon_min = hyper_parameters.epsilon_min
+        self.epsilon_decay = hyper_parameters.epsilon_decay
+        self.learning_rate = hyper_parameters.learning_rate
+        self.target_train_interal = hyper_parameters.target_train_interval
         self.train_count = 0
 
         self.tau = 0.125
@@ -69,7 +68,7 @@ class DQNAgent():
     def train(self):
         self.epsilon *= self.epsilon_decay
         self.train_count += 1
-        batch_size = BATCH_SIZE
+        batch_size = self.batch_size
         if len(self.memory) < batch_size:
             return
         samples = random.sample(self.memory, batch_size)
@@ -88,8 +87,8 @@ class DQNAgent():
                 reward = example.reward + Q_future * self.discount_factor
                 target[0][example.action] = reward
             self.model.fit(array([example.state]),
-                           target, epochs=EPOCHS, verbose=0)
-        if self.train_count % TRAIN_AMOUNT == 0:
+                           target, epochs=1, verbose=0)
+        if self.train_count % self.target_train_interal == 0:
             self.__target_train()
             print("epilson", self.epsilon)
             self.model.save_weights("DQN_weights.h5")

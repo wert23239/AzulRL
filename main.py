@@ -6,6 +6,7 @@ from environment import Environment
 from example import Example
 from human_player import HumanPlayer
 from random_model import RandomModel
+from hyper_parameters import HyperParameters
 from random_or_override import RandomOrOverride
 
 
@@ -57,24 +58,21 @@ def assess_model(m1,random,e,name):
     name,avg_score,max_score,average_wrong_guesses,min_wrong_guesses)
   print(result)
 
-def main(player1_type, player2_type, train_bots):
+def main(player1_type, player2_type, train_bots, hyper_parameters):
     random = RandomOrOverride()
     if player1_type == "bot":
-        m1 = DQNAgent(random,player2_type == "human")
+        m1 = DQNAgent(random, hyper_parameters, player2_type == "human")
     elif player1_type == "random":
         m1 = RandomModel(random)
     else:
         m1 = HumanPlayer()
     if player2_type == "bot":
-        m2 = DQNAgent(random,player1_type == "human")
+        m2 = DQNAgent(random, hyper_parameters, player1_type == "human")
     elif player2_type == "random":
         m2 = RandomModel(random)
     else:
         m2 = HumanPlayer()
     e = Environment(random)
-    train_interval = 10
-    accuracy_interval = 100
-
     number_of_games = 0
     is_playing_bot = True
     if(type(m2) == HumanPlayer):
@@ -97,16 +95,18 @@ def main(player1_type, player2_type, train_bots):
             player.save(example)
             previous_state = state
         number_of_games+=1
-        if number_of_games % train_interval == 0 and is_playing_bot:
+        if number_of_games % hyper_parameters.train_interval == 0 and is_playing_bot:
             m1.train()
             m2.train()
-        if number_of_games % accuracy_interval == 0:
+        if number_of_games % hyper_parameters.accuracy_interval == 0:
+            print("Epoch: ",number_of_games)
             assess_model(m1, random, e, "player 1")
             assess_model(m2, random, e, "player 2")
 
 
 if __name__ == "__main__":
     player_types = ["random", "bot", "human"]
+    hyper_parmeters = HyperParameters()
     valid_args = (
         len(sys.argv) >= 3
         and sys.argv[1] in player_types
@@ -115,11 +115,11 @@ if __name__ == "__main__":
     if valid_args:
         train = True  # By default, we train the model.
         if len(sys.argv) == 1:
-            main("bot", "bot", train)
+            main("bot", "bot", train,hyper_parmeters)
         else:
           if len(sys.argv) >= 4:
             train = sys.argv[3]
-          main(sys.argv[1], sys.argv[2], train)
+          main(sys.argv[1], sys.argv[2], train, hyper_parmeters)
     else:
         print("Usage: python main.py player1_type player2_type")
         print("Acceptable types include 'random', 'bot', and 'human'.")
