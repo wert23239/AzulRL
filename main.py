@@ -12,6 +12,7 @@ Usage: python main.py player1_type player2_type
 Acceptable types include 'random', 'bot', and 'human'.
 """
 
+GAME_AMOUNT = 10
 
 def main(player1_type, player2_type):
     random = RandomOrOverride()
@@ -29,6 +30,8 @@ def main(player1_type, player2_type):
         m2 = HumanPlayer()
     e = Environment(random)
 
+
+    number_of_games = 0
     while True:
         state, turn, possible_actions = e.reset()
         done = False
@@ -38,11 +41,15 @@ def main(player1_type, player2_type):
                 player = m1
             else:
                 player = m2
-            action = player.action(state, possible_actions, turn)
+            action, action_num = player.action(state, possible_actions, turn)
             state, turn, possible_actions, reward, done = e.move(action)
-            example = Example(reward,action,possible_actions,previous_state.to_observable_state(),state.to_observable_state(),done)
+            example = Example(reward,action_num,possible_actions,previous_state.to_observable_state(),state.to_observable_state(),done)
             player.save(example)
             previous_state = state
+        number_of_games+=1
+        if number_of_games%GAME_AMOUNT:
+            player.train()
+
         print("round over")
 
 

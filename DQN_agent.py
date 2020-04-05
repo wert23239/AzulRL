@@ -13,6 +13,7 @@ from random_or_override import RandomOrOverride
 STATE_SPACE = 185
 ACTION_SPACE = 180
 BATCH_SIZE = 32
+TRAIN_AMOUNT = 5
 
 
 class DQNAgent():
@@ -25,6 +26,7 @@ class DQNAgent():
         self.epsilon_min = .01
         self.epsilon_decay = 0.995
         self.learning_rate = 0.01
+        self.train_count = 0
 
         
         self.model = self.__create_model()
@@ -35,17 +37,17 @@ class DQNAgent():
         self.epsilon = max(self.epsilon_min, self.epsilon)
         if self.random_or_override.random_range_cont() < self.epsilon:
             l = list(possible_actions)
-            return self.random_or_override.random_sample(l, 1)[0]
+            return (self.random_or_override.random_sample(l, 1)[0],0)
         observable_state = state.to_observable_state()
-        return self.__get_possible_action(self.model.predict(array([observable_state]))[0],possible_actions) 
-
-    def __get_possible_action(self,prediction,possible_actions):
+        return self.__get_best_possible_action(self.model.predict(array([observable_state]))[0],possible_actions)
+    
+    def __get_best_possible_action(self,prediction,possible_actions):
         prediction_list = prediction.argsort().tolist()
         while(len(prediction_list)):
             action_number = prediction_list.pop()
             action = self.__convert_action_num(action_number)
             if action in possible_actions:
-                return action
+                return (action,action_number)
 
     def __convert_action_num(self,action_number): #TEST
         circle = action_number // (NUMBER_OF_COLORS*NUMBER_OF_ROWS)
@@ -58,24 +60,27 @@ class DQNAgent():
         self.memory.append(example)
 
 
-    def __replay(self):
+    def train(self):
         batch_size = BATCH_SIZE
         if len(self.memory) < batch_size:
             return
         samples = random.sample(self.memory, batch_size)
         for sample in samples:
             example = sample
-            target = self.target_model.predict(example.state) 
+            target = self.target_model.predict(array([example.state]))
             if sample.done:
                 target[0][example.action] = example.reward
             else:
-                prediction = self.target_model.predict(example.new_state)[0]
-                action = self.__get_possible_action(prediction,example.possible_action)
-                Q_future = action 
-                target[0][example.action] = example.reward + Q_future * self.discount_factor
-            self.model.fit(example.state,target, epoch=1, verbose=0)
+                prediction = self.target_model.predict(array([example.next_state]))[0]
+                action = self.__get_best_possible_action(prediction,example.possible_actions)[1]
+                Q_future = prediction[action]
+                reward = example.reward + Q_future * self.discount_factor
+                target[0][example.action] = reward
+            self.model.fit(array([example.state]),target, epochs=1, verbose=0)
+        if self.train_count % TRAIN_AMOUNT:
+            self.__target_train()     
 
-    def target_train(self):
+    def __target_train(self):
         weights = self.model.get_weights()
         target_weights = self.target_model.get_weights()
         for i in range(len(target_weights)):

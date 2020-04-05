@@ -43,8 +43,11 @@ class HumanPlayer:
                 my_action = Action(
                     int(user_actions[0]), int(user_actions[1]), int(user_actions[2]))
                 if my_action in possible_actions:
-                    return my_action
+                    return (my_action,0)
             user_action_str = input("Invalid action, try again:\n\n")
 
     def save(self, example):
+        pass
+
+    def train(self):
         pass

@@ -7,7 +7,10 @@ class RandomModel:
 
     def action(self, state, possible_actions, turn):
         l = list(possible_actions)
-        return self.random_or_override.random_sample(l, 1)[0]
+        return (self.random_or_override.random_sample(l, 1)[0],0)
 
     def save(self, example):
+        pass
+
+    def train(self):
         pass
