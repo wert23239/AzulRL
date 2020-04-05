@@ -37,17 +37,19 @@ class DQNAgent():
         self.epsilon = max(self.epsilon_min, self.epsilon)
         if train and self.random_or_override.random_range_cont() < self.epsilon:
             l = list(possible_actions)
-            return (self.random_or_override.random_sample(l, 1)[0],0)
+            return (self.random_or_override.random_sample(l, 1)[0],0,-1)
         observable_state = state.to_observable_state()
         return self.__get_best_possible_action(self.model.predict(array([observable_state]))[0],possible_actions)
 
     def __get_best_possible_action(self,prediction,possible_actions):
         prediction_list = prediction.argsort().tolist()
+        wrong_guesses = 0
         while(len(prediction_list)):
             action_number = prediction_list.pop()
             action = self.__convert_action_num(action_number)
             if action in possible_actions:
-                return (action,action_number)
+                return (action,action_number,wrong_guesses)
+            wrong_guesses += 1
         raise Exception
 
     def __convert_action_num(self,action_number): #TEST

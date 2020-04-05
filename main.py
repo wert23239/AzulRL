@@ -24,21 +24,35 @@ def score_to_reward(score):
 def assess_model(m1,random,e):
   m2 = RandomModel(random)
   player1_scores = []
+  player1_wrong_guesses = []
   for games in range(500):
     state, turn, possible_actions = e.reset()
     done = False
     total_score = 0
+    total_wrong_guesses = 0
+    previous_turn = -1
     while not done:
-      if turn == 1:
+      if turn == 0:
         player = m1
       else:
         player = m2
-      action, action_num = player.action(state, possible_actions, turn, False)
+      previous_turn = turn
+      action, action_num, num_wrong_guesses = player.action(state, possible_actions, turn, False)
       state, turn, possible_actions, score, done = e.move(action)
-      if turn == 1:
+      if previous_turn==0:
         total_score += score
+        if num_wrong_guesses != -1:
+          total_wrong_guesses += num_wrong_guesses
+        else:
+          raise Exception
     player1_scores.append(total_score)
-  print(sum(player1_scores) / len(player1_scores))
+    if total_wrong_guesses == 0:
+      print("total score", total_score)
+    player1_wrong_guesses.append(total_wrong_guesses)
+  print("accuracy", sum(player1_scores) / len(player1_scores))
+  print("max score", max(player1_scores))
+  print("average wrong guesses", sum(player1_wrong_guesses) / len(player1_wrong_guesses))
+  print("min wrong guesses", min(player1_wrong_guesses))
 
 def main(player1_type, player2_type, train_bots):
     random = RandomOrOverride()
@@ -64,11 +78,11 @@ def main(player1_type, player2_type, train_bots):
         done = False
         previous_state = state  # FIX LATER
         while not done:
-            if turn == 1:
+            if turn == 0:
                 player = m1
             else:
                 player = m2
-            action, action_num = player.action(state, possible_actions, turn, True)
+            action, action_num, _ = player.action(state, possible_actions, turn, True)
             state, turn, possible_actions, score, done = e.move(action)
             reward = score_to_reward(score)
             example = Example(reward,action_num,possible_actions,previous_state.to_observable_state(),state.to_observable_state(),done)
