@@ -89,7 +89,6 @@ def main(player1_type, player2_type, train_bots):
             player.save(example)
             previous_state = state
         number_of_games+=1
-
         if number_of_games % train_interval == 0:
             m1.train()
             m2.train()
@@ -106,7 +105,7 @@ if __name__ == "__main__":
     if valid_args:
         train = True  # By default, we train the model.
         if len(sys.argv) == 1:
-            main("bot", "random", train)
+            main("bot", "bot", train)
         else:
           if len(sys.argv) >= 4:
             train = sys.argv[3]
