@@ -14,9 +14,6 @@ Train bots is a boolean that will cause the model to train when it's set to
 True and the 'bot' option is used.
 """
 
-TRAIN_INTERVAL = 10
-ACCURACY_INTERVAL = 100
-
 def score_to_reward(score):
     if score <= -2:
         return -1
@@ -37,7 +34,7 @@ def assess_model(m1, m2, e):
         player = m2
       action, action_num = player.action(state, possible_actions, turn, False)
       state, turn, possible_actions, score, done = e.move(action)
-      if turn == 0:
+      if turn == 1:
         total_score += score
     player1_scores.append(total_score)
   print(sum(player1_scores) / len(player1_scores))
@@ -57,6 +54,8 @@ def main(player1_type, player2_type, train_bots):
     else:
         m2 = HumanPlayer()
     e = Environment(random)
+    train_interval = 10
+    accuracy_interval = 100
 
     number_of_games = 0
     while True:
@@ -76,9 +75,9 @@ def main(player1_type, player2_type, train_bots):
             previous_state = state
         number_of_games+=1
 
-        if number_of_games%TRAIN_INTERVAL:
+        if number_of_games % train_interval == 0:
             player.train()
-        if number_of_games%ACCURACY_INTERVAL:
+        if number_of_games % accuracy_interval == 0:
             assess_model(m1, m2, e)
         print("round over")
 
