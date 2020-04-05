@@ -130,3 +130,8 @@ dmypy.json
 
 # VSCode
 .vscode/
+
+
+# models
+DQN_weights.h5
+DQN_target_weights.h5

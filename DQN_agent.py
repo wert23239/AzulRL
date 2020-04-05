@@ -4,7 +4,6 @@ from collections import deque
 from keras import Sequential
 from keras.layers import Dense
 from keras.optimizers import Adam
-from keras.models import load_model
 from numpy import argmax,array
 
 from action import Action
@@ -30,7 +29,9 @@ class DQNAgent():
         self.learning_rate = 0.01
         self.train_count = 0
 
-        self.model = load_model('DQN_model.h5')
+
+        self.model = self.__create_model()
+        self.model.load_weights('DQN_weights.h5')
         self.target_model = self.__create_model()
 
     def action(self,state,possible_actions,_,train):
