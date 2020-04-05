@@ -6,7 +6,7 @@ class HumanPlayer:
     def __init__(self):
         pass
 
-    def action(self, state, possible_actions, turn):
+    def action(self, state, possible_actions, turn, _):
         print("------------------------ Your Mosaic: ------------------------")
         for row in state.mosaics[turn]:
             print(row)

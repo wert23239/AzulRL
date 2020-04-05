@@ -20,7 +20,7 @@ EPOCHS = 3
 class DQNAgent():
     def __init__(self, random_or_override):
         self.random_or_override = random_or_override
-        self.memory = deque(maxlen=20000)
+        self.memory = deque(maxlen=2000)
         self.discount_factor = .95
         # exploration vs. exploitation  params
         self.epsilon = 1.0
@@ -29,19 +29,19 @@ class DQNAgent():
         self.learning_rate = 0.01
         self.train_count = 0
 
-        
+
         self.model = self.__create_model()
         self.target_model = self.__create_model()
 
-    def action(self,state,possible_actions,_):
+    def action(self,state,possible_actions,_,train):
         self.epsilon *= self.epsilon_decay
         self.epsilon = max(self.epsilon_min, self.epsilon)
-        if self.random_or_override.random_range_cont() < self.epsilon:
+        if train and self.random_or_override.random_range_cont() < self.epsilon:
             l = list(possible_actions)
             return (self.random_or_override.random_sample(l, 1)[0],0)
         observable_state = state.to_observable_state()
         return self.__get_best_possible_action(self.model.predict(array([observable_state]))[0],possible_actions)
-    
+
     def __get_best_possible_action(self,prediction,possible_actions):
         prediction_list = prediction.argsort().tolist()
         while(len(prediction_list)):
@@ -49,7 +49,7 @@ class DQNAgent():
             action = self.__convert_action_num(action_number)
             if action in possible_actions:
                 return (action,action_number)
-        raise Exception 
+        raise Exception
 
     def __convert_action_num(self,action_number): #TEST
         circle = action_number // (NUMBER_OF_COLORS*NUMBER_OF_ROWS)
@@ -78,9 +78,9 @@ class DQNAgent():
                 Q_future = prediction[action]
                 reward = example.reward + Q_future * self.discount_factor
                 target[0][example.action] = reward
-            self.model.fit(array([example.state]),target, epochs=EPOCHS, verbose=1)
+            self.model.fit(array([example.state]),target, epochs=EPOCHS, verbose=0)
         if self.train_count % TRAIN_AMOUNT:
-            self.__target_train()     
+            self.__target_train()
 
     def __target_train(self):
         weights = self.model.get_weights()
