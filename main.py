@@ -21,7 +21,8 @@ def score_to_reward(score):
         return 1
     return 0
 
-def assess_model(m1, m2, e):
+def assess_model(m1,random,e):
+  m2 = RandomModel(random)
   player1_scores = []
   for games in range(500):
     state, turn, possible_actions = e.reset()
@@ -76,10 +77,10 @@ def main(player1_type, player2_type, train_bots):
         number_of_games+=1
 
         if number_of_games % train_interval == 0:
-            player.train()
+            m1.train()
+            m2.train()
         if number_of_games % accuracy_interval == 0:
-            assess_model(m1, m2, e)
-        print("round over")
+            assess_model(m1, random, e)
 
 if __name__ == "__main__":
     player_types = ["random", "bot", "human"]
