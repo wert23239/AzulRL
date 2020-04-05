@@ -57,14 +57,26 @@ class EnvironmentState:
           self.tile_locations[color][IN_BAG]
          ]
          for color in self.tile_locations]
-        numbers_list = []
+        observable_state = []
         for l in tile_locations_list:
-          numbers_list += l
+          observable_state += l
 
         # Next, the mosaics list and the triangles list.
         mosaics_list = [c for p in self.mosaics for r in p for c in r]
         triangles_list = [c for p in self.triangles for r in p for c in r]
-        numbers_list += mosaics_list + triangles_list
+        observable_state += mosaics_list + triangles_list
+        for player in self.triangles:
+          for triangle_row in player:
+            row_color = triangle_row[0]
+            observable_state.append(row_color)
+            row_amount = 0
+            if row_color != NO_COLOR:
+             row_amount = triangle_row.count(row_color)
+            observable_state.append(row_amount)
+            row_size = len(triangle_row)
+            observable_state.append(row_size)            
+
+
 
         # Next, the mosaic bonuses list.
         mosaic_bonuses_list = [
@@ -72,7 +84,7 @@ class EnvironmentState:
           p[COLUMN_BONUS] + p[ROW_BONUS]
           for p in self.mosaic_bonuses]
         for l in mosaic_bonuses_list:
-          numbers_list += l
+          observable_state += l
 
         # Finally, the floors list, circles list, and center list.
         floors_list = [i for p in self.floors for i in p]
@@ -85,6 +97,6 @@ class EnvironmentState:
             circles_array[i][color-1] = circles_counters[i][color]
             center_list[color-1] = center_counter[color]
         circles_list = [column for row in circles_array for column in row]
-        numbers_list += \
+        observable_state += \
           floors_list + [self.one_piece] + circles_list + center_list
-        return np.array(numbers_list)
+        return np.array(observable_state)

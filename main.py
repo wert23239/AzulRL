@@ -1,8 +1,11 @@
 import sys
 
 import numpy as np
+<<<<<<< HEAD
 from keras.metrics import accuracy
 
+=======
+>>>>>>> 9c1c13e6de8bedb83c19af847c629c9cb3a74c29
 from DQN_agent import DQNAgent
 from environment import Environment
 from example import Example
