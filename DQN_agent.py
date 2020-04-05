@@ -34,7 +34,6 @@ class DQNAgent():
         self.target_model = self.__create_model()
 
     def action(self,state,possible_actions,_,train):
-        self.epsilon *= self.epsilon_decay
         self.epsilon = max(self.epsilon_min, self.epsilon)
         if train and self.random_or_override.random_range_cont() < self.epsilon:
             l = list(possible_actions)
@@ -65,6 +64,8 @@ class DQNAgent():
 
 
     def train(self):
+        self.epsilon *= self.epsilon_decay
+        self.train_count += 1
         batch_size = BATCH_SIZE
         if len(self.memory) < batch_size:
             return
@@ -81,8 +82,10 @@ class DQNAgent():
                 reward = example.reward + Q_future * self.discount_factor
                 target[0][example.action] = reward
             self.model.fit(array([example.state]),target, epochs=EPOCHS, verbose=0)
-        if self.train_count % TRAIN_AMOUNT:
+        if self.train_count % TRAIN_AMOUNT == 0:
             self.__target_train()
+            print("epilson",self.epsilon)
+            #self.model.save_weights('DQN_weights.h5')
 
     def __target_train(self):
         weights = self.model.get_weights()
