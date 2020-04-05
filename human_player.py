@@ -1,6 +1,5 @@
 from action import Action
 import environment_state
-import fileinput
 
 
 class HumanPlayer:
@@ -29,19 +28,23 @@ class HumanPlayer:
             print(circle)
         print("-------------------------- Center: ---------------------------")
         print(state.center)
-        print("Which circle would you like to pull from,")
+        print("\nWhich circle would you like to pull from,")
         print("Which color would you like to pull from it,")
         print("And on which line of your triangle will you  place the tiles?")
         print("Format answer as '<circle>,<color>,<row>'.")
         print("Refer to the center as circle 5,")
-        print("And refer to the floor of your board as row 5.")
-        user_actions = fileinput.input().split(",")
-        # The following will crash the program if the user's input isn't valid
-        # as integers or if it doesn't contain the correct amount of integers.
-        if len(user_actions) > 3:
-            raise Exception
-        return Action(
-            int(user_actions[0]), int(user_actions[1]), int(user_actions[2]))
+        user_action_str = input(
+            "And refer to the floor of your board as row 5:\n\n")
+        while True:
+            user_actions = user_action_str.split(",")
+            if len(user_actions) == 3:
+                # The following will crash the program if the user's input isn't
+                # valid as integers.
+                my_action = Action(
+                    int(user_actions[0]), int(user_actions[1]), int(user_actions[2]))
+                if my_action in possible_actions:
+                    return my_action
+            user_action_str = input("Invalid action, try again:\n\n")
 
     def save(self, example):
         pass
