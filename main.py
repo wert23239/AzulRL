@@ -12,9 +12,9 @@ Usage: python main.py player1_type player2_type
 Acceptable types include 'random', 'bot', and 'human'.
 """
 
-GAME_AMOUNT = 10
-
 def main(player1_type, player2_type):
+    TRAIN_INTERVAL = 100
+    max_score=0
     random = RandomOrOverride()
     if player1_type == "bot":
         m1 = DQNAgent(random)
@@ -43,14 +43,14 @@ def main(player1_type, player2_type):
                 player = m2
             action, action_num = player.action(state, possible_actions, turn)
             state, turn, possible_actions, reward, done = e.move(action)
+            max_score=max(reward,max_score)
             example = Example(reward,action_num,possible_actions,previous_state.to_observable_state(),state.to_observable_state(),done)
             player.save(example)
             previous_state = state
         number_of_games+=1
-        if number_of_games%GAME_AMOUNT:
+        if number_of_games%TRAIN_INTERVAL==0:
+            print(max_score)
             player.train()
-
-        print("round over")
 
 
 if __name__ == "__main__":

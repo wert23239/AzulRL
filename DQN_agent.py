@@ -12,14 +12,15 @@ from random_or_override import RandomOrOverride
 
 STATE_SPACE = 185
 ACTION_SPACE = 180
-BATCH_SIZE = 32
+BATCH_SIZE = 64
 TRAIN_AMOUNT = 5
+EPOCHS = 3
 
 
 class DQNAgent():
     def __init__(self, random_or_override):
         self.random_or_override = random_or_override
-        self.memory = deque(maxlen=2000)
+        self.memory = deque(maxlen=20000)
         self.discount_factor = .95
         # exploration vs. exploitation  params
         self.epsilon = 1.0
@@ -77,7 +78,7 @@ class DQNAgent():
                 Q_future = prediction[action]
                 reward = example.reward + Q_future * self.discount_factor
                 target[0][example.action] = reward
-            self.model.fit(array([example.state]),target, epochs=1, verbose=0)
+            self.model.fit(array([example.state]),target, epochs=EPOCHS, verbose=1)
         if self.train_count % TRAIN_AMOUNT:
             self.__target_train()     
 
