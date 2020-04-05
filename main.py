@@ -29,6 +29,7 @@ def assess_model(m1, m2, e):
   for games in range(500):
     state, turn, possible_actions = e.reset()
     done = False
+    total_score = 0
     while not done:
       if turn == 1:
         player = m1
@@ -36,7 +37,9 @@ def assess_model(m1, m2, e):
         player = m2
       action, action_num = player.action(state, possible_actions, turn, False)
       state, turn, possible_actions, score, done = e.move(action)
-    player1_scores.append(score)
+      if turn == 0:
+        total_score += score
+    player1_scores.append(total_score)
   print(sum(player1_scores) / len(player1_scores))
 
 def main(player1_type, player2_type, train_bots):
