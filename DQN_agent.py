@@ -10,6 +10,7 @@ from random_or_override import RandomOrOverride
 
 STATE_SPACE = 164
 ACTION_SPACE = 180
+BATCH_SIZE = 32
 
 class DQNAgent():
     def __init__(self, random_or_override):
@@ -37,6 +38,7 @@ class DQNAgent():
     def save(self):
         memory_discounted=self.__caculate_discount_reward()
         self.memory.extend(memory_discounted)
+
 
     def __caculate_discount_reward(self):
         return self.memory

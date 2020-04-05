@@ -22,10 +22,9 @@ def main():
             action = player.action(state, possible_actions)
             state, turn, possible_actions, reward, done = e.move(action)
             example = Example(reward,action,state,previous_action,previous_state)
-            player.save_temp(example)
+            player.save(example)
             previous_action = action
             previous_state = state
-        player.save()
         print("round over")    
 
 if __name__ == "__main__":
