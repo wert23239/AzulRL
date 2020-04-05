@@ -14,7 +14,6 @@ BATCH_SIZE = 32
 
 class DQNAgent():
     def __init__(self, random_or_override):
-        self.memory_temp = deque(maxlen=2000)
         self.memory = deque(maxlen=2000)
         self.discount_factor = .95
         # exploration vs. exploitation  params
@@ -32,10 +31,7 @@ class DQNAgent():
     def __convert_action_num(self,action_number):
         pass
 
-    def save_temp(self,example):
-        self.memory_temp.append(example)
-    
-    def save(self):
+    def save(self,example):
         memory_discounted=self.__caculate_discount_reward()
         self.memory.extend(memory_discounted)
 
