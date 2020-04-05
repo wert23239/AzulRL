@@ -99,9 +99,7 @@ class DQNAgent():
         weights = self.model.get_weights()
         target_weights = self.target_model.get_weights()
         for i in range(len(target_weights)):
-            target_weights[i] = weights[i] * self.tau + target_weights[i] * (
-                1 - self.tau
-            )
+            target_weights[i] = weights[i] * self.tau + target_weights[i] * (1 - self.tau)
         self.target_model.set_weights(target_weights)
 
     def __create_model(self):

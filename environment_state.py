@@ -65,17 +65,6 @@ class EnvironmentState:
         mosaics_list = [c for p in self.mosaics for r in p for c in r]
         triangles_list = [c for p in self.triangles for r in p for c in r]
         observable_state += mosaics_list + triangles_list
-        # for player in self.triangles:
-        #   for triangle_row in player:
-        #     row_color = triangle_row[0]
-        #     observable_state.append(row_color)
-        #     row_amount = 0
-        #     if row_color != NO_COLOR:
-        #      row_amount = triangle_row.count(row_color)
-        #     observable_state.append(row_amount)
-        #     row_size = len(triangle_row)
-        #     observable_state.append(row_size)            
-
 
 
         # Next, the mosaic bonuses list.
