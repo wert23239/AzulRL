@@ -383,7 +383,9 @@ print(floor_move_pass)
 
 #####                        1.5: Row-Finishing Move                        ####
 random_or_override = RandomOrOverride(override=[
-                                      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+                                      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                      1, 1])
 e = Environment(random_or_override)
 state, turn, possible_moves = e.reset()
 finish_row_move_pass = True
