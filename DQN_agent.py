@@ -18,7 +18,7 @@ EPOCHS = 3
 
 
 class DQNAgent():
-    def __init__(self, random_or_override):
+    def __init__(self, random_or_override,human=False):
         self.random_or_override = random_or_override
         self.memory = deque(maxlen=2000)
         self.discount_factor = .95
@@ -31,7 +31,8 @@ class DQNAgent():
 
 
         self.model = self.__create_model()
-        self.model.load_weights('DQN_weights.h5')
+        if human: #Add check for weights file exisiting
+          self.model.load_weights('DQN_complete_weights.h5')
         self.target_model = self.__create_model()
 
     def action(self,state,possible_actions,_,train):

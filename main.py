@@ -1,11 +1,15 @@
-from environment import Environment
-from DQN_agent import DQNAgent
-from random_or_override import RandomOrOverride
-from random_model import RandomModel
-from human_player import HumanPlayer
-from example import Example
-import numpy as np
 import sys
+
+import numpy as np
+from keras.metrics import accuracy
+
+from DQN_agent import DQNAgent
+from environment import Environment
+from example import Example
+from human_player import HumanPlayer
+from random_model import RandomModel
+from random_or_override import RandomOrOverride
+
 
 """
 Usage: python main.py player1_type player2_type <train_bots>
@@ -21,7 +25,7 @@ def score_to_reward(score):
         return 1
     return 0
 
-def assess_model(m1,random,e):
+def assess_model(m1,random,e,name):
   m2 = RandomModel(random)
   player1_scores = []
   player1_wrong_guesses = []
@@ -46,24 +50,25 @@ def assess_model(m1,random,e):
         else:
           raise Exception
     player1_scores.append(total_score)
-    if total_wrong_guesses == 0:
-      print("total score", total_score)
     player1_wrong_guesses.append(total_wrong_guesses)
-  print("accuracy", sum(player1_scores) / len(player1_scores))
-  print("max score", max(player1_scores))
-  print("average wrong guesses", sum(player1_wrong_guesses) / len(player1_wrong_guesses))
-  print("min wrong guesses", min(player1_wrong_guesses))
+  avg_score = sum(player1_scores) / len(player1_scores)
+  max_score = max(player1_scores)
+  average_wrong_guesses = sum(player1_wrong_guesses) / len(player1_wrong_guesses)
+  min_wrong_guesses = min(player1_wrong_guesses)
+  result = str("player: {} accuracy: {} max_score:{} average_wrong_guesses:{} min_wrong_guesses:{} ").format(
+    name,avg_score,max_score,average_wrong_guesses,min_wrong_guesses)
+  print(result)
 
 def main(player1_type, player2_type, train_bots):
     random = RandomOrOverride()
     if player1_type == "bot":
-        m1 = DQNAgent(random)
+        m1 = DQNAgent(random,player2_type == "human")
     elif player1_type == "random":
         m1 = RandomModel(random)
     else:
         m1 = HumanPlayer()
     if player2_type == "bot":
-        m2 = DQNAgent(random)
+        m2 = DQNAgent(random,player1_type == "human")
     elif player2_type == "random":
         m2 = RandomModel(random)
     else:
@@ -98,7 +103,8 @@ def main(player1_type, player2_type, train_bots):
             m1.train()
             m2.train()
         if number_of_games % accuracy_interval == 0:
-            assess_model(m1, random, e)
+            assess_model(m1, random, e, "player 1")
+            assess_model(m2, random, e, "player 2")
 
 
 if __name__ == "__main__":
