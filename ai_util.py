@@ -41,7 +41,7 @@ class ContinuousThread(Thread):
 
         end_time = time() + timeout
 
-        while time() < end_time:
+        while time() < end_time and depth <= 7:
             self._kwargs['depth'] = depth
             self._most_recent_val = self._target(*self._args, **self._kwargs)
             depth += 1
@@ -51,33 +51,5 @@ class ContinuousThread(Thread):
         try:
             return self._most_recent_val
         except AttributeError:
-            print "Error: You ran the search function for so short a time that it couldn't even come up with any answer at all!  Returning a random column choice..."
-            import random
-            return random.randint(0, 6)
-
-
-class memoize(object):
-    """
-    'Memoize' decorator.
-
-    Caches a function's return values,
-    so that it needn't compute output for the same input twice.
-
-    Use as follows:
-    @memoize
-    def my_fn(stuff):
-        # Do stuff
-    """
-
-    def __init__(self, fn):
-        self.fn = fn
-        self.memocache = {}
-
-    def __call__(self, *args, **kwargs):
-        memokey = (args, tuple(sorted(kwargs.items())))
-        if memokey in self.memocache:
-            return self.memocache[memokey]
-        else:
-            val = self.fn(*args, **kwargs)
-            self.memocache[memokey] = val
-            return val
+            print("Error: You ran the search function for so short a time that it couldn't even come up with any answer at all!  Returning a random column choice...")
+            raise Exception

@@ -14,27 +14,27 @@ class HumanPlayer:
                        [2, 3, 4, 5, 1]]
         print("------ Your Mosaic (Left) ----- Mosaic Template (Right): -----")
         for i, row in enumerate(state.mosaics[turn]):
-            print(row, "\t\t\t", mosaic_template[i])
+            print(i, row, "\t\t\t", mosaic_template[i])
         print("----------------------- Your Triangle: -----------------------")
-        for row in state.triangles[turn]:
-            print(row)
+        for i, row in enumerate(state.triangles[turn]):
+            print(i, row)
         print("------------------------ Your Floor: -------------------------")
         print(state.floors[turn])
         print()
         print()
         print("---- Opponent's Mosaic (Left) --- Mosaic Template (Right): ---")
         for i, row in enumerate(state.mosaics[(turn + 1) % 2]):
-            print(row, "\t\t\t", mosaic_template[i])
+            print(i, row, "\t\t\t", mosaic_template[i])
         print("-------------------- Opponent's Triangle: --------------------")
-        for row in state.triangles[(turn + 1) % 2]:
-            print(row)
+        for i, row in enumerate(state.triangles[(turn + 1) % 2]):
+            print(i, row)
         print("---------------------- Opponent's Floor: ---------------------")
         print(state.floors[(turn + 1) % 2])
         print()
         print()
         print("-------------------------- Circles: --------------------------")
-        for circle in state.circles:
-            print(sorted(circle))
+        for i, circle in enumerate(state.circles):
+            print(i, sorted(circle))
         print("-------------------------- Center: ---------------------------")
         print(sorted(state.center))
         print("\nWhich circle would you like to pull from,")
