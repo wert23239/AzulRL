@@ -41,7 +41,7 @@ class ContinuousThread(Thread):
 
         end_time = time() + timeout
 
-        while time() < end_time and depth <= 50:
+        while time() < end_time and depth <= 30:
             self._kwargs['depth'] = depth
             self._most_recent_val = self._target(*self._args, **self._kwargs)
             depth += 1
