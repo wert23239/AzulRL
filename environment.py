@@ -17,31 +17,24 @@ class Environment:
         # First, all tiles start in the bag.
         tile_locations = {
             color: {
-                IN_PLAY: 0,
-                OUT_OF_PLAY: 0,
-                OUT_OF_PLAY_TEMP: 0,
-                IN_BOX: 0,
-                IN_BAG: 20,
-            }
-            for color in [COLOR_A, COLOR_B, COLOR_C, COLOR_D, COLOR_E]
+                IN_PLAY: 0, OUT_OF_PLAY: 0, OUT_OF_PLAY_TEMP: 0, IN_BOX: 0, IN_BAG: 20
+            } for color in [COLOR_A, COLOR_B, COLOR_C, COLOR_D, COLOR_E]
         }
 
         # All mosaics, triangles, and mosaic bonuses start empty.
         empty_mosaic_1 = [[NO_COLOR for j in range(5)] for i in range(5)]
         empty_mosaic_2 = [[NO_COLOR for j in range(5)] for i in range(5)]
-        empty_triangle_1 = [[NO_COLOR for j in range(i + 1)] for i in range(5)]
-        empty_triangle_2 = [[NO_COLOR for j in range(i + 1)] for i in range(5)]
+        empty_triangle_1 = [[NO_COLOR for j in range(i+1)] for i in range(5)]
+        empty_triangle_2 = [[NO_COLOR for j in range(i+1)] for i in range(5)]
         empty_mosaic_bonuses_1 = {
             FIVE_OF_A_KIND: {
-                color: 0 for color in [COLOR_A, COLOR_B, COLOR_C, COLOR_D, COLOR_E]
-            },
+                color: 0 for color in [COLOR_A, COLOR_B, COLOR_C, COLOR_D, COLOR_E]},
             COLUMN_BONUS: [0 for i in range(5)],
             ROW_BONUS: [0 for i in range(5)],
         }
         empty_mosaic_bonuses_2 = {
             FIVE_OF_A_KIND: {
-                color: 0 for color in [COLOR_A, COLOR_B, COLOR_C, COLOR_D, COLOR_E]
-            },
+                color: 0 for color in [COLOR_A, COLOR_B, COLOR_C, COLOR_D, COLOR_E]},
             COLUMN_BONUS: [0 for i in range(5)],
             ROW_BONUS: [0 for i in range(5)],
         }
@@ -56,7 +49,7 @@ class Environment:
             [empty_floors_1, empty_floors_2],  # floors
             UNASSIGNED,  # one_piece
             [[], [], [], [], []],  # circles
-            [],  # center
+            []  # center
         )
         self.deal_tiles()
         self.find_possible_moves()
@@ -77,13 +70,15 @@ class Environment:
         else:
             tile_counter = Counter(self.state.circles[action.circle])
             num_tiles = tile_counter[action.color]
-            self.circle_remains_to_center(action.color, action.circle, tile_counter)
+            self.circle_remains_to_center(
+                action.color, action.circle, tile_counter)
 
         # Add tiles to floor or row.
         if action.row == 5:
             reward += self.add_tiles_to_floor(action.color, num_tiles)
         else:
-            reward += self.add_tiles_to_row(action.color, num_tiles, action.row)
+            reward += self.add_tiles_to_row(action.color,
+                                            num_tiles, action.row)
 
         # Calculate reward and prepare for next turn.
         self.previous_rewards[self.turn] = reward
@@ -134,9 +129,8 @@ class Environment:
         self.state.center = list(filter((color).__ne__, self.state.center))
 
     def circle_remains_to_center(self, color, circle, tile_counter):
-        self.state.circles[circle] = list(
-            filter((color).__ne__, self.state.circles[circle])
-        )
+        self.state.circles[circle] = list(filter((color).__ne__,
+                                                 self.state.circles[circle]))
         self.state.center += self.state.circles[circle]
         self.state.circles[circle] = []
 
@@ -186,21 +180,16 @@ class Environment:
 
     def add_to_mosaic_reward(self, color, row):
         reward = 0
-        color_order = [
-            [COLOR_A, COLOR_B, COLOR_C, COLOR_D, COLOR_E],
-            [COLOR_E, COLOR_A, COLOR_B, COLOR_C, COLOR_D],
-            [COLOR_D, COLOR_E, COLOR_A, COLOR_B, COLOR_C],
-            [COLOR_C, COLOR_D, COLOR_E, COLOR_A, COLOR_B],
-            [COLOR_B, COLOR_C, COLOR_D, COLOR_E, COLOR_A],
-        ]
+        color_order = [[COLOR_A, COLOR_B, COLOR_C, COLOR_D, COLOR_E],
+                       [COLOR_E, COLOR_A, COLOR_B, COLOR_C, COLOR_D],
+                       [COLOR_D, COLOR_E, COLOR_A, COLOR_B, COLOR_C],
+                       [COLOR_C, COLOR_D, COLOR_E, COLOR_A, COLOR_B],
+                       [COLOR_B, COLOR_C, COLOR_D, COLOR_E, COLOR_A]]
         col = color_order[row].index(color)
         self.state.mosaics[self.turn][row][col] = color
-        (
-            vertical_neighbors,
-            horizontal_neighbors,
-        ) = self.vertical_and_horizontal_neighbors(
-            self.state.mosaics[self.turn], row, col
-        )
+        vertical_neighbors, horizontal_neighbors = \
+            self.vertical_and_horizontal_neighbors(self.state.mosaics[self.turn],
+                                                   row, col)
         if vertical_neighbors == 1 and horizontal_neighbors == 1:
             reward += 1
         elif vertical_neighbors == 1:
@@ -251,35 +240,28 @@ class Environment:
 
     def deal_tiles(self):
         # Randomly select tiles from the bag and put them in play.
-        bag = [
-            color
-            for color in self.state.tile_locations
-            for i in range(self.state.tile_locations[color][IN_BAG])
-        ]
-        tiles_chosen = self.random_or_override.random_sample(bag, min(20, len(bag)))
+        bag = [color for color in self.state.tile_locations
+               for i in range(self.state.tile_locations[color][IN_BAG])]
+        tiles_chosen = self.random_or_override.random_sample(
+            bag, min(20, len(bag)))
         for color in tiles_chosen:
             self.state.tile_locations[color][IN_BAG] -= 1
             self.state.tile_locations[color][IN_PLAY] += 1
         if len(tiles_chosen) < 20:  # We may need to refill the bag.
             tiles_chosen += self.choose_more_tiles(tiles_chosen)
-        self.state.circles = [tiles_chosen[i * 4 : (i + 1) * 4] for i in range(5)]
+        self.state.circles = [tiles_chosen[i*4:(i+1)*4] for i in range(5)]
 
     def choose_more_tiles(self, tiles_chosen):
         # Contents of bag should equal what contents of the box once did.
         for color in self.state.tile_locations:
-            self.state.tile_locations[color][IN_BAG] = self.state.tile_locations[color][
-                IN_BOX
-            ]
+            self.state.tile_locations[color][IN_BAG] = \
+                self.state.tile_locations[color][IN_BOX]
             self.state.tile_locations[color][IN_BOX] = 0
-        bag = [
-            color
-            for color in self.state.tile_locations
-            for i in range(self.state.tile_locations[color][IN_BAG])
-        ]
+        bag = [color for color in self.state.tile_locations
+               for i in range(self.state.tile_locations[color][IN_BAG])]
         # Randomly choose the remaining tiles needed and put them in play.
         new_tiles_chosen = self.random_or_override.random_sample(
-            bag, 20 - len(tiles_chosen)
-        )
+            bag, 20 - len(tiles_chosen))
         for color in new_tiles_chosen:
             self.state.tile_locations[color][IN_BAG] -= 1
             self.state.tile_locations[color][IN_PLAY] += 1
@@ -297,10 +279,8 @@ class Environment:
     def find_possible_moves_in_tileset(self, circle_id, circle):
         for tile in set(circle):
             for i, row in enumerate(self.state.triangles[self.turn]):
-                if (
-                    self.color_will_fit(tile, row)
-                    and tile not in self.state.mosaics[self.turn][i]
-                ):
+                if self.color_will_fit(tile, row) \
+                        and tile not in self.state.mosaics[self.turn][i]:
                     self.possible_moves.append(Action(circle_id, tile, i))
             # Use row 5 to mean the floor of the board, which is always an option.
             self.possible_moves.append(Action(circle_id, tile, 5))
@@ -320,43 +300,13 @@ class Environment:
 
 setup_tests_pass = True
 
-######################################## TEST CASE 1: ALL SAME NUMBERS ON CIRCLES ########################################
+################### TEST CASE 1: ALL SAME NUMBERS ON CIRCLES ###################
 
-#####                                                   1.1: Setup                                                    ####
-random_or_override = RandomOrOverride(
-    override=[
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-    ]
-)
+#####                              1.1: Setup                               ####
+random_or_override = RandomOrOverride(override=[
+                                      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                      1, 1])
 e = Environment(random_or_override)
 state, turn, possible_moves = e.reset()
 setup_tests_pass &= turn == 1
@@ -364,44 +314,15 @@ actions = set()
 for circle in range(5):
     for row in range(6):
         actions.add(Action(circle, 1, row))
-setup_tests_pass &= len(possible_moves) == len(possible_moves.intersection(actions))
+setup_tests_pass &= len(possible_moves) == len(
+    possible_moves.intersection(actions))
 print(setup_tests_pass)
 
-#####                                             1.2: Row-Filling Move                                               ####
-random_or_override = RandomOrOverride(
-    override=[
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-    ]
-)
+#####                         1.2: Row-Filling Move                         ####
+random_or_override = RandomOrOverride(override=[
+                                      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                      1, 1])
 e = Environment(random_or_override)
 state, turn, possible_moves = e.reset()
 rowfill_move_pass = True
@@ -413,44 +334,15 @@ actions = set()
 for circle in range(1, 5):
     for row in range(6):
         actions.add(Action(circle, 1, row))
-rowfill_move_pass &= len(possible_moves) == len(possible_moves.intersection(actions))
+rowfill_move_pass &= len(possible_moves) == len(
+    possible_moves.intersection(actions))
 print(rowfill_move_pass)
 
-#####                                            1.3: Non-Row-Filling Move                                             ####
-random_or_override = RandomOrOverride(
-    override=[
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-    ]
-)
+#####                       1.3: Non-Row-Filling Move                       ####
+random_or_override = RandomOrOverride(override=[
+                                      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                      1, 1])
 e = Environment(random_or_override)
 state, turn, possible_moves = e.reset()
 non_rowfill_move_pass = True
@@ -458,51 +350,20 @@ _, _, _, _, _ = e.move(Action(0, 1, 3))
 state, turn, possible_moves, net_reward, done = e.move(Action(4, 1, 4))
 non_rowfill_move_pass &= turn == 1
 non_rowfill_move_pass &= done == False
-non_rowfill_move_pass &= net_reward == -1  # 0 - 1
+non_rowfill_move_pass &= net_reward == -1   # 0 - 1
 actions = set()
 for circle in range(1, 4):
     for row in [0, 1, 2, 4, 5]:
         actions.add(Action(circle, 1, row))
 non_rowfill_move_pass &= len(possible_moves) == len(
-    possible_moves.intersection(actions)
-)
+    possible_moves.intersection(actions))
 print(non_rowfill_move_pass)
 
-#####                                                 1.4: Floor Move                                                  ####
-random_or_override = RandomOrOverride(
-    override=[
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-    ]
-)
+#####                            1.4: Floor Move                            ####
+random_or_override = RandomOrOverride(override=[
+                                      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                      1, 1])
 e = Environment(random_or_override)
 state, turn, possible_moves = e.reset()
 floor_move_pass = True
@@ -516,44 +377,13 @@ actions = set()
 for circle in range(1, 3):
     for row in range(6):
         actions.add(Action(circle, 1, row))
-floor_move_pass &= len(possible_moves) == len(possible_moves.intersection(actions))
+floor_move_pass &= len(possible_moves) == len(
+    possible_moves.intersection(actions))
 print(floor_move_pass)
 
-#####                                              1.5: Row-Finishing Move                                             ####
-random_or_override = RandomOrOverride(
-    override=[
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-    ]
-)
+#####                        1.5: Row-Finishing Move                        ####
+random_or_override = RandomOrOverride(override=[
+                                      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
 e = Environment(random_or_override)
 state, turn, possible_moves = e.reset()
 finish_row_move_pass = True
@@ -567,55 +397,15 @@ finish_row_move_pass &= net_reward == 3  # -4 + 1 + 6
 actions = set()
 for row in [0, 1, 2, 4, 5]:
     actions.add(Action(1, 1, row))
-finish_row_move_pass &= len(possible_moves) == len(possible_moves.intersection(actions))
+finish_row_move_pass &= len(possible_moves) == len(
+    possible_moves.intersection(actions))
 print(finish_row_move_pass)
 
-#####                                           1.6: Round-Finishing Move                                             ####
-random_or_override = RandomOrOverride(
-    override=[
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-    ]
-)
+#####                      1.6: Round-Finishing Move                        ####
+random_or_override = RandomOrOverride(override=[
+                                      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
 e = Environment(random_or_override)
 state, turn, possible_moves = e.reset()
 finish_round_move_pass = True
@@ -632,50 +422,16 @@ for circle in range(5):
     for row in range(6):
         actions.add(Action(circle, 1, row))
 finish_round_move_pass &= len(possible_moves) == len(
-    possible_moves.intersection(actions)
-)
+    possible_moves.intersection(actions))
 print(finish_round_move_pass)
 
-##################################### TEST CASE 2: ALL DIFFERENT NUMBERS ON CIRCLES ######################################
+################ TEST CASE 2: ALL DIFFERENT NUMBERS ON CIRCLES #################
 
-#####                                                   1.1: Setup                                                    ####
-random_or_override = RandomOrOverride(
-    override=[
-        0,
-        1,
-        2,
-        3,
-        4,
-        1,
-        2,
-        3,
-        4,
-        1,
-        2,
-        3,
-        4,
-        1,
-        2,
-        3,
-        4,
-        1,
-        2,
-        3,
-        4,
-        1,
-        2,
-        3,
-        4,
-        1,
-        2,
-        3,
-        4,
-        1,
-        2,
-        3,
-        4,
-    ]
-)
+#####                              2.1: Setup                               ####
+random_or_override = RandomOrOverride(override=[
+                                      0, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1,
+                                      2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3,
+                                      4, 1, 2, 3, 4])
 e = Environment(random_or_override)
 state, turn, possible_moves = e.reset()
 setup_tests_pass &= turn == 0
@@ -684,4 +440,6 @@ for circle in range(5):
     for color in range(1, 5):
         for row in range(6):
             actions.add(Action(circle, color, row))
-setup_tests_pass &= len(possible_moves) == len(possible_moves.intersection(actions))
+setup_tests_pass &= len(possible_moves) == len(
+    possible_moves.intersection(actions))
+print(setup_tests_pass)

@@ -8,5 +8,5 @@ class HumanPlayer:
     def action(self, state, possible_actions):
         pass
 
-    def save(self):
+    def save(self, example):
         pass

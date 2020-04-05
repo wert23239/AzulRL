@@ -9,5 +9,5 @@ class RandomModel:
         l = list(possible_actions)
         return self.random_or_override.random_sample(l, 1)[0]
 
-    def save(self):
+    def save(self, example):
         pass
