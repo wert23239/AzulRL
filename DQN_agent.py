@@ -10,10 +10,10 @@ from constants import NUMBER_OF_CIRCLES, NUMBER_OF_ROWS
 from random_or_override import RandomOrOverride
 from action import Action
 
-
 STATE_SPACE = 164
 ACTION_SPACE = 180
 BATCH_SIZE = 32
+
 
 class DQNAgent():
     def __init__(self, random_or_override):
@@ -21,7 +21,7 @@ class DQNAgent():
         self.memory = deque(maxlen=2000)
         self.discount_factor = .95
         # exploration vs. exploitation  params
-        self.epsilon = 1.0 
+        self.epsilon = 1.0
         self.epsilon_min = .01
         self.epsilon_decay = 0.995
         self.learning_rate = 0.01
@@ -29,7 +29,7 @@ class DQNAgent():
         self.model = self.__create_model()
         self.target_model = self.__create_model()
 
-    def action(self,state,possible_actions):
+    def action(self,state,possible_actions,_):
         self.epsilon *= self.epsilon_decay
         self.epsilon = max(self.epsilon_min, self.epsilon)
         if self.random_or_override.random_range_cont(0,1) < self.epsilon:
@@ -81,13 +81,12 @@ class DQNAgent():
             target_weights[i] = weights[i]
         self.target_model.set_weights(target_weights)
 
-
-
     def __create_model(self):
         model = Sequential()
-        model.add(Dense(24,input_dim=STATE_SPACE,activation='relu'))
-        model.add(Dense(48,activation="relu"))
-        model.add(Dense(24,activation='relu'))
+        model.add(Dense(24, input_dim=STATE_SPACE, activation='relu'))
+        model.add(Dense(48, activation="relu"))
+        model.add(Dense(24, activation='relu'))
         model.add(Dense(ACTION_SPACE))
-        model.compile(loss="mean_squared_error",optimizer=Adam(lr=self.learning_rate))
+        model.compile(loss="mean_squared_error",
+                      optimizer=Adam(lr=self.learning_rate))
         return model
