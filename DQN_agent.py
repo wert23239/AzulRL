@@ -48,6 +48,7 @@ class DQNAgent():
             action = self.__convert_action_num(action_number)
             if action in possible_actions:
                 return (action,action_number)
+        raise Exception 
 
     def __convert_action_num(self,action_number): #TEST
         circle = action_number // (NUMBER_OF_COLORS*NUMBER_OF_ROWS)
