@@ -82,8 +82,13 @@ def main(player1_type, player2_type, train_bots):
                 player = m1
             else:
                 player = m2
-            action, action_num, _ = player.action(state, possible_actions, turn, True)
+            train = True
+            if(type(m2) == HumanPlayer):
+              train =False
+            action, action_num, _ = player.action(state, possible_actions, turn, train)
             state, turn, possible_actions, score, done = e.move(action)
+            if not train:
+              print("score", score)
             reward = score_to_reward(score)
             example = Example(reward,action_num,possible_actions,previous_state.to_observable_state(),state.to_observable_state(),done)
             player.save(example)
