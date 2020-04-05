@@ -33,7 +33,8 @@ class DQNAgent():
         self.epsilon *= self.epsilon_decay
         self.epsilon = max(self.epsilon_min, self.epsilon)
         if self.random_or_override.random_range_cont() < self.epsilon:
-            return possible_actions.pop() #Fix to random
+            l = list(possible_actions)
+            return self.random_or_override.random_sample(l, 1)[0]
         observable_state = state.to_observable_state()
         return self.__get_possible_action(self.model.predict(array([observable_state]))[0],possible_actions) 
 
@@ -43,8 +44,7 @@ class DQNAgent():
             action_number = prediction_list.pop()
             action = self.__convert_action_num(action_number)
             if action in possible_actions:
-                return action    
-        x = 5/0
+                return action
 
     def __convert_action_num(self,action_number): #TEST
         circle = action_number // (NUMBER_OF_COLORS*NUMBER_OF_ROWS)
@@ -70,8 +70,7 @@ class DQNAgent():
             else:
                 prediction = self.target_model.predict(example.new_state)[0]
                 action = self.__get_possible_action(prediction,example.possible_action)
-                #Find max w/ possible actions and think about MDP's here
-                Q_future = prediction 
+                Q_future = action 
                 target[0][example.action] = example.reward + Q_future * self.discount_factor
             self.model.fit(example.state,target, epoch=1, verbose=0)
 
