@@ -1,12 +1,31 @@
 from environment import Environment
 from DQN_agent import DQNAgent
 from random_or_override import RandomOrOverride
+from random_model import RandomModel
+from human_player import HumanPlayer
 from example import Example
+import sys
 
-def main():
+"""
+Usage: python main.py player1_type player2_type
+Acceptable types include 'random', 'bot', and 'human'.
+"""
+
+
+def main(player1_type, player2_type):
     random = RandomOrOverride()
-    m1 = DQNAgent(random)
-    m2 = DQNAgent(random)
+    if player1_type == "bot":
+        m1 = DQNAgent(random)
+    elif player1_type == "random":
+        m1 = RandomModel(random)
+    else:
+        m1 = HumanPlayer()
+    if player2_type == "bot":
+        m2 = DQNAgent(random)
+    elif player2_type == "random":
+        m2 = RandomModel(random)
+    else:
+        m2 = HumanPlayer()
     e = Environment(random)
 
     while True:
@@ -21,12 +40,26 @@ def main():
                 player = m2
             action = player.action(state, possible_actions)
             state, turn, possible_actions, reward, done = e.move(action)
-            example = Example(reward,action,state,previous_action,previous_state)
+            example = Example(reward, action, state, previous_action, previous_state)
             player.save_temp(example)
             previous_action = action
             previous_state = state
         player.save()
-        print("round over")    
+        print("round over")
+
 
 if __name__ == "__main__":
-    main()
+    player_types = ["random", "bot", "human"]
+    valid_args = (
+        len(sys.argv) == 3
+        and sys.argv[1] in player_types
+        and sys.argv[2] in player_types
+    ) or len(sys.argv) == 1
+    if valid_args:
+        if len(sys.argv) == 1:
+            main("bot", "random")
+        else:
+            main(sys.argv[1], sys.argv[2])
+    else:
+        print("Usage: python main.py player1_type player2_type")
+        print("Acceptable types include 'random', 'bot', and 'human'.")
