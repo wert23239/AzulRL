@@ -1,11 +1,14 @@
 import random
+from collections import deque
 
 from keras import Sequential
 from keras.layers import Dense
 from keras.optimizers import Adam
-from collections import deque
-from random_or_override import RandomOrOverride
+from numpy import argmax
 
+from constants import NUMBER_OF_CIRCLES, NUMBER_OF_ROWS
+from random_or_override import RandomOrOverride
+from action import Action
 
 
 STATE_SPACE = 164
@@ -14,6 +17,7 @@ BATCH_SIZE = 32
 
 class DQNAgent():
     def __init__(self, random_or_override):
+        self.random_or_override = random_or_override
         self.memory = deque(maxlen=2000)
         self.discount_factor = .95
         # exploration vs. exploitation  params
@@ -26,18 +30,58 @@ class DQNAgent():
         self.target_model = self.__create_model()
 
     def action(self,state,possible_actions):
-        return possible_actions.pop()
+        self.epsilon *= self.epsilon_decay
+        self.epsilon = max(self.epsilon_min, self.epsilon)
+        if self.random_or_override.random_range_cont(0,1) < self.epsilon:
+            return possible_actions.pop() #Fix to random
+        return self.__get_possible_action(self.model.predict(state)[0],possible_actions) 
 
-    def __convert_action_num(self,action_number):
-        pass
+    def __get_possible_action(self,prediction,possible_actions):
+        prediction_list = prediction.argsort()
+        while(prediction):
+            action_number = prediction_list.pop()
+            action = self.__convert_action_num(action_number)
+            if action in possible_actions:
+                return action
+            
+        x = 5/0
+
+    def __convert_action_num(self,action_number): #TEST
+        circle = action_number // (NUMBER_OF_COLORS*NUMBER_OF_ROWS)
+        action_number = action_number // (NUMBER_OF_COLORS*NUMBER_OF_ROWS)
+        color = action_number // (NUMBER_OF_ROWS)
+        row = action_number % row
+        return Actionn(circle,color,row)
 
     def save(self,example):
-        memory_discounted=self.__caculate_discount_reward()
-        self.memory.extend(memory_discounted)
+        self.memory.extend(example)
 
 
-    def __caculate_discount_reward(self):
-        return self.memory
+    def __replay(self):
+        batch_size = BATCH_SIZE
+        if len(self.memory) < batch_size:
+            return
+        samples = random.sample(self.memory, batch_size)
+        for sample in samples:
+            example = sample
+            target = self.target_model.predict(example.state) 
+            if sample.done:
+                target[0][example.action] = example.reward
+            else:
+                action = self.__get_possible_action(self.target_model.predict(example.new_state)[0],example.possible_action)
+                #Find max w/ possible actions and think about MDP's here
+                Q_future = self.target_model.predict(example.new_state)[0][action] 
+                target[0][example.action] = example.reward + Q_future * self.discount_factor
+            self.model.fit(example.state,target, epoch=1, verbose=0)
+
+    def target_train(self):
+        weights = self.model.get_weights()
+        target_weights = self.target_model.get_weights()
+        for i in range(len(target_weights)):
+            target_weights[i] = weights[i]
+        self.target_model.set_weights(target_weights)
+
+
 
     def __create_model(self):
         model = Sequential()

@@ -4,6 +4,7 @@ from dataclasses import dataclass
 class Example:
    reward: int
    action: int
-   state: list
-   previous_action: int
-   previous_state: list 
+   possible_actions: list
+   state: list 
+   next_state: list
+   done: bool

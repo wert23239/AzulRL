@@ -12,7 +12,6 @@ def main():
     while True:
         state, turn, possible_actions = e.reset()
         done = False
-        previous_action = None
         previous_state = None
         while not done:
             if turn == 1:
@@ -21,9 +20,8 @@ def main():
                 player = m2
             action = player.action(state, possible_actions)
             state, turn, possible_actions, reward, done = e.move(action)
-            example = Example(reward,action,state,previous_action,previous_state)
+            example = Example(reward,action,possible_actions,previous_state,state,done)
             player.save(example)
-            previous_action = action
             previous_state = state
         print("round over")    
 
