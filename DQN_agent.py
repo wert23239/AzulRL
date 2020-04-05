@@ -1,37 +1,39 @@
-from random_or_override import RandomOrOverride
-from constants import NUMBER_OF_CIRCLES, NUMBER_OF_COLORS, NUMBER_OF_ROWS
-from action import Action
-from numpy import argmax, array
-from keras.optimizers import Adam
-from keras.layers import Dense
-from keras import Sequential
-from collections import deque
 import random
+from collections import deque
 
+from keras import Sequential
+from keras.layers import Dense
+from keras.optimizers import Adam
+from numpy import argmax, array
+
+from action import Action
+from constants import NUMBER_OF_CIRCLES, NUMBER_OF_COLORS, NUMBER_OF_ROWS
+from random_or_override import RandomOrOverride
 
 STATE_SPACE = 215
 ACTION_SPACE = 180
-BATCH_SIZE = 128
+BATCH_SIZE = 64
 TRAIN_AMOUNT = 5
-EPOCHS = 1
+EPOCHS = 3
 
 
 class DQNAgent():
     def __init__(self, random_or_override, human=False):
         self.random_or_override = random_or_override
-        self.memory = deque(maxlen=5000)
-        self.discount_factor = 0.85
+        self.memory = deque(maxlen=2000)
+        self.discount_factor = 0.95
         # exploration vs. exploitation  params
         self.epsilon = 1.0
         self.epsilon_min = 0.01
-        self.epsilon_decay = 0.999
-        self.learning_rate = 0.005
+        self.epsilon_decay = 0.995
+        self.learning_rate = 0.01
         self.train_count = 0
 
         self.tau = 0.125
 
         self.model = self.__create_model()
         if human:  # Add check for weights file exisiting
+            print("LOADING MODEL")
             self.model.load_weights('DQN_complete_weights.h5')
         self.target_model = self.__create_model()
 
@@ -99,16 +101,14 @@ class DQNAgent():
         weights = self.model.get_weights()
         target_weights = self.target_model.get_weights()
         for i in range(len(target_weights)):
-            target_weights[i] = weights[i] * self.tau + target_weights[i] * (
-                1 - self.tau
-            )
+            target_weights[i] = weights[i] 
         self.target_model.set_weights(target_weights)
 
     def __create_model(self):
         model = Sequential()
         model.add(Dense(128, input_dim=STATE_SPACE, activation='relu'))
-        model.add(Dense(64, activation="relu"))
-        model.add(Dense(32, activation='relu'))
+        model.add(Dense(64, activation="relu"),)
+        model.add(Dense(32, activation='relu'),)
         model.add(Dense(ACTION_SPACE))
         model.compile(loss="mean_squared_error",
                       optimizer=Adam(lr=self.learning_rate))

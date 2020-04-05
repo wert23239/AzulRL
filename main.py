@@ -101,6 +101,7 @@ def main(player1_type, player2_type, train_bots):
             m1.train()
             m2.train()
         if number_of_games % accuracy_interval == 0:
+            print("Epoch:",number_of_games)
             assess_model(m1, random, e, "player 1")
             assess_model(m2, random, e, "player 2")
 
