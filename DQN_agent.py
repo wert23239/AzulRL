@@ -9,7 +9,7 @@ from collections import deque
 import random
 
 
-STATE_SPACE = 215
+STATE_SPACE = 185
 ACTION_SPACE = 180
 BATCH_SIZE = 128
 TRAIN_AMOUNT = 5
@@ -99,16 +99,14 @@ class DQNAgent():
         weights = self.model.get_weights()
         target_weights = self.target_model.get_weights()
         for i in range(len(target_weights)):
-            target_weights[i] = weights[i] * self.tau + target_weights[i] * (
-                1 - self.tau
-            )
+            target_weights[i] = weights[i] * self.tau + target_weights[i] * (1 - self.tau)
         self.target_model.set_weights(target_weights)
 
     def __create_model(self):
         model = Sequential()
-        model.add(Dense(128, input_dim=STATE_SPACE, activation='relu'))
-        model.add(Dense(64, activation="relu"))
-        model.add(Dense(32, activation='relu'))
+        model.add(Dense(24, input_dim=STATE_SPACE, activation='relu'))
+        model.add(Dense(48, activation="relu"))
+        model.add(Dense(24, activation='relu'))
         model.add(Dense(ACTION_SPACE))
         model.compile(loss="mean_squared_error",
                       optimizer=Adam(lr=self.learning_rate))
