@@ -98,10 +98,8 @@ def main(player1_type, player2_type, train_bots):
                 player = m1
             else:
                 player = m2
-            print("starting player action")
             action, action_num, _ = player.action(
                 state, possible_actions, turn, is_playing_bot)
-            print("finished player action")
             state, turn, possible_actions, score, done = e.move(action)
             if not is_playing_bot:
                 print("score", score)
