@@ -1,12 +1,16 @@
 import unittest
-from action import Action
 
 import numpy as np
 
+from action import Action
 from DQN_agent import DQNAgent
+from example import Example
 from hyper_parameters import HyperParameters
 from random_or_override import RandomOrOverride
 
+
+DEFAULT_EXAMPLE_1 = Example(reward= 0,action= 0, possible_actions= [], state= [], next_state= [], done=True)
+DEFAULT_EXAMPLE_2 = Example(reward= 5,action= 0, possible_actions= [], state= [], next_state= [], done=True)
 
 class DQnAgentMethods(unittest.TestCase):
 
@@ -42,6 +46,14 @@ class DQnAgentMethods(unittest.TestCase):
         possibleActions = [Action(0,1,0),Action(0,1,1),Action(0,1,2)]
         action,_,_ = self.agent.get_best_possible_action(prediction_list,possibleActions)
         self.assertEqual(action,Action(0,1,0))
+    
+    def test_updateFinalReward(self):
+        self.agent.save(DEFAULT_EXAMPLE_2)
+        self.agent.save(DEFAULT_EXAMPLE_1)
+        self.assertEqual(self.agent.memory[-1].reward,0)
+        self.agent.updateFinalReward(3)
+        self.assertEqual(self.agent.memory[-1].reward,3)
+
 
 
 

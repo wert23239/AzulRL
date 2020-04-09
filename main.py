@@ -24,7 +24,7 @@ True and the 'bot' option is used.
 
 
 
-def assess_model(m1, random, e, name):
+def assess_model(m1, random, e, name, hyper_parameters):
     m2 = RandomModel(random)
     player1_scores = []
     player1_rewards = []
@@ -44,9 +44,10 @@ def assess_model(m1, random, e, name):
             previous_turn = turn
             action, _, num_wrong_guesses = player.action(
                 state, possible_actions, turn, False)
-            state, turn, possible_actions, score, _, done = e.move(action)
+            state, turn, possible_actions, score, current_score, done = e.move(action)
             if previous_turn == 0:
-                total_reward += score_to_reward(score)
+                # this may be one off by one because of how reward updates
+                total_reward += score_to_reward(hyper_parameters.reward_function,current_score,score,done)
                 total_score += score
                 if num_wrong_guesses != -1:
                     total_wrong_guesses += num_wrong_guesses
@@ -128,9 +129,9 @@ def main(player1_type, player2_type, train_bots, hyper_parameters):
         if number_of_games % hyper_parameters.accuracy_interval == 0:
             print("win loss ratio: ",wins/(losses+wins))
             print("Epoch: ",number_of_games)
-            avg_score=assess_model(m1, random, e, "player 1")
+            avg_score=assess_model(m1, random, e, "player 1",hyper_parameters)
             best_avg_score = max(avg_score,best_avg_score)
-            assess_model(m2, random, e, "player 2")
+            assess_model(m2, random, e, "player 2",hyper_parameters)
             wins = 0
             losses = 0
             if type(m1) == DQNAgent:

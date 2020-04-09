@@ -116,4 +116,7 @@ class DQNAgent():
         return model
 
     def updateFinalReward(self,reward):
-        self.memory.popleft()
+        example = self.memory.pop()
+        example.done = True
+        example.reward = reward
+        self.memory.append(example)
