@@ -80,7 +80,7 @@ class DQNAgent():
             else:
                 prediction = self.target_model.predict(
                     array([example.next_state]))[0]
-                action = self.__get_best_possible_action(
+                action = self.get_best_possible_action(
                     prediction, example.possible_actions
                 )[1]
                 Q_future = prediction[action]
