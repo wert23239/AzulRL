@@ -12,6 +12,7 @@ class Environment:
     def reset(self):
         self.turn = self.random_or_override.random_range(0, 1)
         self.previous_rewards = [0, 0]  # players 1 and 2 both have scores of 0
+        self.total_rewards = [0,0]
         self.done = False
 
         # First, all tiles start in the bag.
@@ -79,9 +80,9 @@ class Environment:
         else:
             reward += self.add_tiles_to_row(action.color,
                                             num_tiles, action.row)
-
         # Calculate reward and prepare for next turn.
         self.previous_rewards[self.turn] = reward
+        self.total_rewards[self.turn] = reward
         net_reward = reward - self.previous_rewards[(self.turn + 1) % 2]
         if not self.done:
             if self.end_of_round():
@@ -94,7 +95,7 @@ class Environment:
             else:
                 self.turn = (self.turn + 1) % 2
             self.find_possible_moves()
-        return self.state, self.turn, set(self.possible_moves), net_reward, self.done
+        return self.state, self.turn, set(self.possible_moves), net_reward, self.total_rewards, self.done
 
     def prepare_next_round(self):
         # Put tiles from both players' filled rows into the box.
@@ -326,7 +327,7 @@ random_or_override = RandomOrOverride(override=[
 e = Environment(random_or_override)
 state, turn, possible_moves = e.reset()
 rowfill_move_pass = True
-state, turn, possible_moves, net_reward, done = e.move(Action(0, 1, 3))
+state, turn, possible_moves, net_reward, current_score,done = e.move(Action(0, 1, 3))
 rowfill_move_pass &= turn == 0
 rowfill_move_pass &= done == False
 rowfill_move_pass &= net_reward == 1  # 1 - 0
@@ -346,8 +347,8 @@ random_or_override = RandomOrOverride(override=[
 e = Environment(random_or_override)
 state, turn, possible_moves = e.reset()
 non_rowfill_move_pass = True
-_, _, _, _, _ = e.move(Action(0, 1, 3))
-state, turn, possible_moves, net_reward, done = e.move(Action(4, 1, 4))
+e.move(Action(0, 1, 3))
+state, turn, possible_moves, net_reward, current_score,done = e.move(Action(4, 1, 4))
 non_rowfill_move_pass &= turn == 1
 non_rowfill_move_pass &= done == False
 non_rowfill_move_pass &= net_reward == -1   # 0 - 1
@@ -367,9 +368,9 @@ random_or_override = RandomOrOverride(override=[
 e = Environment(random_or_override)
 state, turn, possible_moves = e.reset()
 floor_move_pass = True
-_, _, _, _, _ = e.move(Action(0, 1, 3))
-_, _, _, _, _ = e.move(Action(4, 1, 4))
-state, turn, possible_moves, net_reward, done = e.move(Action(3, 1, 5))
+e.move(Action(0, 1, 3))
+e.move(Action(4, 1, 4))
+state, turn, possible_moves, net_reward, current_score,done = e.move(Action(3, 1, 5))
 floor_move_pass &= turn == 0
 floor_move_pass &= done == False
 floor_move_pass &= net_reward == -6  # -6 - 0
@@ -389,10 +390,10 @@ random_or_override = RandomOrOverride(override=[
 e = Environment(random_or_override)
 state, turn, possible_moves = e.reset()
 finish_row_move_pass = True
-_, _, _, _, _ = e.move(Action(0, 1, 3))
-_, _, _, _, _ = e.move(Action(4, 1, 4))
-_, _, _, _, _ = e.move(Action(3, 1, 5))
-state, turn, possible_moves, net_reward, done = e.move(Action(2, 1, 4))
+e.move(Action(0, 1, 3))
+e.move(Action(4, 1, 4))
+e.move(Action(3, 1, 5))
+state, turn, possible_moves, net_reward, current_score,done = e.move(Action(2, 1, 4))
 finish_row_move_pass &= turn == 1
 finish_row_move_pass &= done == False
 finish_row_move_pass &= net_reward == 3  # -4 + 1 + 6
@@ -411,11 +412,11 @@ random_or_override = RandomOrOverride(override=[
 e = Environment(random_or_override)
 state, turn, possible_moves = e.reset()
 finish_round_move_pass = True
-_, _, _, _, _ = e.move(Action(0, 1, 3))
-_, _, _, _, _ = e.move(Action(4, 1, 4))
-_, _, _, _, _ = e.move(Action(3, 1, 5))
-_, _, _, _, _ = e.move(Action(2, 1, 4))
-state, turn, possible_moves, net_reward, done = e.move(Action(1, 1, 2))
+e.move(Action(0, 1, 3))
+e.move(Action(4, 1, 4))
+e.move(Action(3, 1, 5))
+e.move(Action(2, 1, 4))
+state, turn, possible_moves, net_reward, current_score,done = e.move(Action(1, 1, 2))
 finish_round_move_pass &= turn == 1
 finish_round_move_pass &= done == False
 finish_round_move_pass &= net_reward == 2  # -1 + 3

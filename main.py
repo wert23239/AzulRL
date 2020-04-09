@@ -30,11 +30,13 @@ def score_to_reward(score):
 def assess_model(m1, random, e, name):
     m2 = RandomModel(random)
     player1_scores = []
+    player1_rewards = []
     player1_wrong_guesses = []
-    for games in range(500):
+    for _ in range(500):
         state, turn, possible_actions = e.reset()
         done = False
         total_score = 0
+        total_reward = 0
         total_wrong_guesses = 0
         previous_turn = -1
         while not done:
@@ -43,10 +45,11 @@ def assess_model(m1, random, e, name):
             else:
                 player = m2
             previous_turn = turn
-            action, action_num, num_wrong_guesses = player.action(
+            action, _, num_wrong_guesses = player.action(
                 state, possible_actions, turn, False)
-            state, turn, possible_actions, score, done = e.move(action)
+            state, turn, possible_actions, score, _, done = e.move(action)
             if previous_turn == 0:
+                total_reward += score_to_reward(score)
                 total_score += score
                 if num_wrong_guesses != -1:
                     total_wrong_guesses += num_wrong_guesses
@@ -54,18 +57,23 @@ def assess_model(m1, random, e, name):
                     raise Exception
         player1_scores.append(total_score)
         player1_wrong_guesses.append(total_wrong_guesses)
+        player1_rewards.append(total_reward)
     avg_score = sum(player1_scores) / len(player1_scores)
     max_score = max(player1_scores)
+    avg_reward = sum(player1_rewards) / len(player1_rewards)
+    max_reward = max(player1_rewards)
     average_wrong_guesses = sum(
         player1_wrong_guesses) / len(player1_wrong_guesses)
     min_wrong_guesses = min(player1_wrong_guesses)
-    result = str("player: {} accuracy: {} max_score:{} average_wrong_guesses:{} min_wrong_guesses:{} ").format(
-        name, avg_score, max_score, average_wrong_guesses, min_wrong_guesses)
+    result = str("player: {} accuracy: {} max_score:{} avg_reward: {} max_reward:{}  average_wrong_guesses:{} min_wrong_guesses:{} ").format(
+        name, avg_score, max_score, avg_reward, max_reward, average_wrong_guesses, min_wrong_guesses)
     print(result)
+    return avg_score
 
 
 def main(player1_type, player2_type, train_bots, hyper_parameters):
     random = RandomOrOverride()
+    best_avg_score=0
     if player1_type == "bot":
         m1 = DQNAgent(random, hyper_parameters, player2_type == "human")
     elif player1_type == "random":
@@ -83,11 +91,12 @@ def main(player1_type, player2_type, train_bots, hyper_parameters):
     else:
         m2 = AIAlgorithm()
     e = Environment(random)
-    number_of_games = 0
     is_playing_bot = True
     if(type(m2) == HumanPlayer):
         is_playing_bot = False
-    while True:
+    wins = 0
+    losses = 0
+    for number_of_games in range(1,hyper_parameters.max_games):
         state, turn, possible_actions = e.reset()
         done = False
         previous_state = state  # FIX LATER
@@ -98,7 +107,7 @@ def main(player1_type, player2_type, train_bots, hyper_parameters):
                 player = m2
             action, action_num, _ = player.action(
                 state, possible_actions, turn, is_playing_bot)
-            state, turn, possible_actions, score, done = e.move(action)
+            state, turn, possible_actions, score,current_score, done = e.move(action)
             if not is_playing_bot:
                 print("score", score)
             reward = score_to_reward(score)
@@ -106,14 +115,23 @@ def main(player1_type, player2_type, train_bots, hyper_parameters):
             ), state.to_observable_state(), done)
             player.save(example)
             previous_state = state
-        number_of_games+=1
+            if(done):
+                if(current_score[0]>current_score[1]):
+                    wins += 1
+                else:
+                    losses += 1  
         if number_of_games % hyper_parameters.train_interval == 0 and is_playing_bot:
             m1.train()
             m2.train()
         if number_of_games % hyper_parameters.accuracy_interval == 0:
+            print("win loss ratio: ",wins/(losses+wins))
             print("Epoch: ",number_of_games)
-            assess_model(m1, random, e, "player 1")
+            avg_score=assess_model(m1, random, e, "player 1")
+            best_avg_score = max(avg_score,best_avg_score)
             assess_model(m2, random, e, "player 2")
+            wins = 0 
+            losses = 0
+    return best_avg_score
 
 
 if __name__ == "__main__":

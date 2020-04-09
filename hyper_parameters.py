@@ -1,7 +1,10 @@
 from dataclasses import dataclass
+import sys
 
 @dataclass 
 class HyperParameters:
+   # Number of games
+   max_games: int = sys.maxsize
    # How many examples to sample from when training
    batch_size: int  = 128
    # How many examples should the model remember
