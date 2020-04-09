@@ -26,10 +26,10 @@ class EnvironmentState:
         # array of colors.
         self.center = center
 
-    def get_mosaic_in_order(self, player):
+    def get_mosaics_in_order(self, player):
       return [self.mosaics[player], self.mosaics[(player + 1) % 2]]
 
-    def get_triangle_in_order(self, player):
+    def get_triangles_in_order(self, player):
       return [self.triangles[player], self.triangles[(player + 1) % 2]]
 
     def get_mosaic_bonuses_in_order(self, player):
@@ -75,8 +75,10 @@ class EnvironmentState:
             observable_state += l
 
         # Next, the mosaics list and the triangles list.
-        mosaics_list = [c for p in self.mosaics for r in p for c in r]
-        triangles_list = [c for p in self.triangles for r in p for c in r]
+        mosaics_list = [
+            c for p in self.get_mosaics_in_order(turn) for r in p for c in r]
+        triangles_list = [
+            c for p in self.get_triangles_in_order(turn) for r in p for c in r]
         observable_state += mosaics_list + triangles_list
 
 
@@ -84,12 +86,12 @@ class EnvironmentState:
         mosaic_bonuses_list = [
             [p[FIVE_OF_A_KIND][c] for c in p[FIVE_OF_A_KIND]] +
             p[COLUMN_BONUS] + p[ROW_BONUS]
-            for p in self.mosaic_bonuses]
+            for p in self.get_mosaic_bonuses_in_order(turn)]
         for l in mosaic_bonuses_list:
             observable_state += l
 
         # Finally, the floors list, circles list, and center list.
-        floors_list = [i for p in self.floors for i in p]
+        floors_list = [i for p in self.get_floors_in_order(turn) for i in p]
         circles_counters = [Counter(c) for c in self.circles]
         center_counter = Counter(self.center)
         circles_array = [[0 for a in range(5)] for b in range(5)]

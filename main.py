@@ -9,7 +9,7 @@ from human_player import HumanPlayer
 from random_model import RandomModel
 from hyper_parameters import HyperParameters
 from random_or_override import RandomOrOverride
-
+from collections import defaultdict
 
 """
 Usage: python main.py player1_type player2_type <train_bots>
@@ -111,8 +111,10 @@ def main(player1_type, player2_type, train_bots, hyper_parameters):
             if not is_playing_bot:
                 print("score", score)
             reward = score_to_reward(score)
-            example = Example(reward, action_num, possible_actions, previous_state.to_observable_state(
-            ), state.to_observable_state(), done)
+            example = Example(
+              reward, action_num, possible_actions,
+              previous_state.to_observable_state(turn),
+              state.to_observable_state(turn), done)
             player.save(example)
             previous_state = state
             if(done):
@@ -132,8 +134,13 @@ def main(player1_type, player2_type, train_bots, hyper_parameters):
             wins = 0
             losses = 0
             if type(m1) == DQNAgent:
-                first_choice_list = [(k, v) for k, v in m1.first_choices.items()]
+                total_first_choices = sum(
+                  v for k, v in m1.first_choices.items())
+                first_choice_list = [
+                  (k, round(v*100/total_first_choices, 2))
+                  for k, v in m1.first_choices.items()]
                 print(sorted(first_choice_list, key=lambda x : x[1], reverse=True))
+                m1.first_choices = defaultdict(int)
     return best_avg_score
 
 
