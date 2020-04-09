@@ -40,22 +40,22 @@ class DQNAgent():
             l = list(possible_actions)
             return (self.random_or_override.random_sample(l, 1)[0], 0, -1)
         observable_state = state.to_observable_state()
-        return self.__get_best_possible_action(
+        return self.get_best_possible_action(
             self.model.predict(array([observable_state]))[0], possible_actions
         )
 
-    def __get_best_possible_action(self, prediction, possible_actions):
+    def get_best_possible_action(self, prediction, possible_actions):
         prediction_list = prediction.argsort().tolist()
         wrong_guesses = 0
         while len(prediction_list):
             action_number = prediction_list.pop()
-            action = self.__convert_action_num(action_number)
+            action = self.convert_action_num(action_number)
             if action in possible_actions:
                 return (action, action_number, wrong_guesses)
             wrong_guesses += 1
         raise Exception
 
-    def __convert_action_num(self, action_number):  # TEST
+    def convert_action_num(self, action_number):  # TEST
         circle = action_number // (NUMBER_OF_COLORS * NUMBER_OF_ROWS)
         action_number = action_number % (NUMBER_OF_COLORS * NUMBER_OF_ROWS)
         color = action_number // (NUMBER_OF_ROWS) + 1
