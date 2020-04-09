@@ -13,6 +13,7 @@ from random_model import RandomModel
 from random_or_override import RandomOrOverride
 from util import score_to_reward
 
+from collections import defaultdict
 
 """
 Usage: python main.py player1_type player2_type <train_bots>
@@ -107,8 +108,10 @@ def main(player1_type, player2_type, train_bots, hyper_parameters):
             if not is_playing_bot:
                 print("score", score)
             reward = score_to_reward(hyper_parameters.reward_function,current_score,score,done)
-            example = Example(reward, action_num, possible_actions, previous_state.to_observable_state(
-            ), state.to_observable_state(), done)
+            example = Example(
+              reward, action_num, possible_actions,
+              previous_state.to_observable_state(turn),
+              state.to_observable_state(turn), done)
             player.save(example)
             previous_state = state
             if(done):
@@ -118,7 +121,7 @@ def main(player1_type, player2_type, train_bots, hyper_parameters):
                 if(current_score[0]>current_score[1]):
                     wins += 1
                 else:
-                    losses += 1  
+                    losses += 1
         if number_of_games % hyper_parameters.train_interval == 0 and is_playing_bot:
             m1.train()
             m2.train()
@@ -128,8 +131,16 @@ def main(player1_type, player2_type, train_bots, hyper_parameters):
             avg_score=assess_model(m1, random, e, "player 1")
             best_avg_score = max(avg_score,best_avg_score)
             assess_model(m2, random, e, "player 2")
-            wins = 0 
+            wins = 0
             losses = 0
+            if type(m1) == DQNAgent:
+                total_first_choices = sum(
+                  v for k, v in m1.first_choices.items())
+                first_choice_list = [
+                  (k, round(v*100/total_first_choices, 2))
+                  for k, v in m1.first_choices.items()]
+                print(sorted(first_choice_list, key=lambda x : x[1], reverse=True))
+                m1.first_choices = defaultdict(int)
     return best_avg_score
 
 
