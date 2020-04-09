@@ -26,6 +26,18 @@ class EnvironmentState:
         # array of colors.
         self.center = center
 
+    def get_mosaic_in_order(self, player):
+      return [self.mosaics[player], self.mosaics[(player + 1) % 2]]
+
+    def get_triangle_in_order(self, player):
+      return [self.triangles[player], self.triangles[(player + 1) % 2]]
+
+    def get_mosaic_bonuses_in_order(self, player):
+      return [self.mosaic_bonuses[player], self.mosaic_bonuses[(player + 1) % 2]]
+
+    def get_floors_in_order(self, player):
+      return [self.floors[player], self.floors[(player + 1) % 2]]
+
     def __hash__(self):
         return hash((self.tile_locations, self.mosaics, self.triangles,
                      self.mosaic_bonuses, self.floors, self.one_piece,
@@ -46,7 +58,7 @@ class EnvironmentState:
             self.tile_locations, self.mosaics, self.triangles, self.mosaic_bonuses, self.floors, self.one_piece, self.circles, self.center
         )
 
-    def to_observable_state(self):
+    def to_observable_state(self, turn):
         # Handle the tile locations list first
         tile_locations_list = [
             [

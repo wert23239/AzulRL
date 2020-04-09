@@ -1,5 +1,5 @@
 import random
-from collections import deque
+from collections import defaultdict, deque
 
 from keras import Sequential
 from keras.layers import Dense
@@ -28,34 +28,39 @@ class DQNAgent():
         self.train_count = 0
 
         self.tau = 0.125
+        self.first_choices = defaultdict(int)
 
         self.model = self.__create_model()
         if human:  # Add check for weights file exisiting
             self.model.load_weights('DQN_complete_weights.h5')
         self.target_model = self.__create_model()
 
-    def action(self, state, possible_actions, _, train):
+    def action(self, state, possible_actions, turn, train):
         self.epsilon = max(self.epsilon_min, self.epsilon)
         if train and self.random_or_override.random_range_cont() < self.epsilon:
             l = list(possible_actions)
             return (self.random_or_override.random_sample(l, 1)[0], 0, -1)
-        observable_state = state.to_observable_state()
-        return self.__get_best_possible_action(
+        observable_state = state.to_observable_state(turn)
+        return self.get_best_possible_action(
             self.model.predict(array([observable_state]))[0], possible_actions
         )
 
-    def __get_best_possible_action(self, prediction, possible_actions):
+    def get_best_possible_action(self, prediction, possible_actions):
         prediction_list = prediction.argsort().tolist()
         wrong_guesses = 0
+        first_choice = True
         while len(prediction_list):
             action_number = prediction_list.pop()
-            action = self.__convert_action_num(action_number)
+            action = self.convert_action_num(action_number)
+            if first_choice:
+                self.first_choices[action] += 1
+                first_choice = False
             if action in possible_actions:
                 return (action, action_number, wrong_guesses)
             wrong_guesses += 1
         raise Exception
 
-    def __convert_action_num(self, action_number):  # TEST
+    def convert_action_num(self, action_number):  # TEST
         circle = action_number // (NUMBER_OF_COLORS * NUMBER_OF_ROWS)
         action_number = action_number % (NUMBER_OF_COLORS * NUMBER_OF_ROWS)
         color = action_number // (NUMBER_OF_ROWS) + 1
@@ -80,7 +85,7 @@ class DQNAgent():
             else:
                 prediction = self.target_model.predict(
                     array([example.next_state]))[0]
-                action = self.__get_best_possible_action(
+                action = self.get_best_possible_action(
                     prediction, example.possible_actions
                 )[1]
                 Q_future = prediction[action]

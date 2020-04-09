@@ -119,7 +119,7 @@ def main(player1_type, player2_type, train_bots, hyper_parameters):
                 if(current_score[0]>current_score[1]):
                     wins += 1
                 else:
-                    losses += 1  
+                    losses += 1
         if number_of_games % hyper_parameters.train_interval == 0 and is_playing_bot:
             m1.train()
             m2.train()
@@ -129,8 +129,11 @@ def main(player1_type, player2_type, train_bots, hyper_parameters):
             avg_score=assess_model(m1, random, e, "player 1")
             best_avg_score = max(avg_score,best_avg_score)
             assess_model(m2, random, e, "player 2")
-            wins = 0 
+            wins = 0
             losses = 0
+            if type(m1) == DQNAgent:
+                first_choice_list = [(k, v) for k, v in m1.first_choices.items()]
+                print(sorted(first_choice_list, key=lambda x : x[1], reverse=True))
     return best_avg_score
 
 
