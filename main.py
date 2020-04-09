@@ -1,14 +1,17 @@
 import sys
 
 import numpy as np
+
 from ai_algorithm import AIAlgorithm
+from constants import PER_GAME
 from DQN_agent import DQNAgent
 from environment import Environment
 from example import Example
 from human_player import HumanPlayer
-from random_model import RandomModel
 from hyper_parameters import HyperParameters
+from random_model import RandomModel
 from random_or_override import RandomOrOverride
+from util import score_to_reward
 
 
 """
@@ -18,13 +21,6 @@ Train bots is a boolean that will cause the model to train when it's set to
 True and the 'bot' option is used.
 """
 
-
-def score_to_reward(score):
-    if score <= -2:
-        return -1
-    if score >= 2:
-        return 1
-    return 0
 
 
 def assess_model(m1, random, e, name):
@@ -110,12 +106,15 @@ def main(player1_type, player2_type, train_bots, hyper_parameters):
             state, turn, possible_actions, score,current_score, done = e.move(action)
             if not is_playing_bot:
                 print("score", score)
-            reward = score_to_reward(score)
+            reward = score_to_reward(hyper_parameters.reward_function,current_score,score,done)
             example = Example(reward, action_num, possible_actions, previous_state.to_observable_state(
             ), state.to_observable_state(), done)
             player.save(example)
             previous_state = state
             if(done):
+                if(hyper_parameters.reward_function == PER_GAME):
+                    m1.updateFinalReward(reward)
+                    m2.updateFinalReward(reward*-1)
                 if(current_score[0]>current_score[1]):
                     wins += 1
                 else:

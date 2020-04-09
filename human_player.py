@@ -60,3 +60,6 @@ class HumanPlayer:
 
     def train(self):
         pass
+
+    def updateFinalReward(self,reward):
+        pass
