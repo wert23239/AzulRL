@@ -1,7 +1,7 @@
 import sys
 from dataclasses import dataclass
 
-from constants import PER_TURN
+from constants import PER_GAME, PER_TURN
 
 
 @dataclass 

@@ -16,7 +16,12 @@ class DQnAgentMethods(unittest.TestCase):
 
     def setUp(self):
         self.agent = DQNAgent(RandomOrOverride(), HyperParameters())
-        pass
+
+    # def runTest(self):
+    #     self.test_convert_action_num()
+    #     self.test_get_best_possible_action_already_sorted()
+    #     self.test_get_best_possible_action_reverse_sorted()
+    #     self.test_updateFinalReward()
 
     def test_convert_action_num(self):
         action = self.agent.convert_action_num(179)
@@ -53,7 +58,6 @@ class DQnAgentMethods(unittest.TestCase):
         self.assertEqual(self.agent.memory[-1].reward,0)
         self.agent.updateFinalReward(3)
         self.assertEqual(self.agent.memory[-1].reward,3)
-
 
 
 

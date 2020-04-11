@@ -66,6 +66,7 @@ def assess_model(m1, random, e, name, hyper_parameters):
     result = str("player: {} accuracy: {} max_score:{} avg_reward: {} max_reward:{}  average_wrong_guesses:{} min_wrong_guesses:{} ").format(
         name, avg_score, max_score, avg_reward, max_reward, average_wrong_guesses, min_wrong_guesses)
     print(result)
+    print()
     return avg_score
 
 
