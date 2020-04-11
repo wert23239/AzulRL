@@ -9,5 +9,7 @@ def suite():
     return suite
 
 if __name__ == '__main__':
-    runner = unittest.TextTestRunner()
-    runner.run(suite())
+    suite = unittest.defaultTestLoader.loadTestsFromTestCase(DQnAgentMethods)
+    unittest.TextTestRunner().run(suite)
+    suite = unittest.defaultTestLoader.loadTestsFromTestCase(EnvironmentMethods)
+    unittest.TextTestRunner().run(suite)
