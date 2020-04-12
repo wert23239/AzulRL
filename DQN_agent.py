@@ -125,8 +125,8 @@ class DQNAgent():
                            target, epochs=1, verbose=0)
         if self.train_count % self.target_train_interal == 0:
             self.__target_train()
-            # self.model.save_weights("DQN_weights.h5")
-            # self.model.save_weights("DQN_target_weights.h5")
+            self.model.save_weights("DQN_weights.h5")
+            self.model.save_weights("DQN_target_weights.h5")
 
     def __target_train(self):
         weights = self.model.get_weights()

@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from constants import PER_GAME, PER_TURN
 
 
-@dataclass 
+@dataclass
 class HyperParameters:
    # Number of games
    max_games: int = sys.maxsize
@@ -29,4 +29,4 @@ class HyperParameters:
    # How many epochs ot train the target
    target_train_interval: int = 2
    # Which reward function to use
-   reward_function : int = PER_TURN
+   reward_function : int = PER_GAME
