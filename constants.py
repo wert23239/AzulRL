@@ -19,6 +19,11 @@ UNASSIGNED = 2
 PLAYER_1 = 0
 PLAYER_2 = 1
 
+# Reward Functions
+PER_TURN = 0
+PER_ROUND = 1
+PER_GAME = 2
+
 # Mosaic Bonuses
 FIVE_OF_A_KIND = 0
 COLUMN_BONUS = 1

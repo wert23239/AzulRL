@@ -1,14 +1,18 @@
 import sys
 
 import numpy as np
+
 from ai_algorithm import AIAlgorithm
+from constants import PER_GAME
 from DQN_agent import DQNAgent
 from environment import Environment
 from example import Example
 from human_player import HumanPlayer
-from random_model import RandomModel
 from hyper_parameters import HyperParameters
+from random_model import RandomModel
 from random_or_override import RandomOrOverride
+from util import score_to_reward
+
 from collections import defaultdict
 
 """
@@ -19,15 +23,8 @@ True and the 'bot' option is used.
 """
 
 
-def score_to_reward(score):
-    if score <= -2:
-        return -1
-    if score >= 2:
-        return 1
-    return 0
 
-
-def assess_model(m1, random, e, name):
+def assess_model(m1, random, e, name, hyper_parameters):
     m2 = RandomModel(random)
     player1_scores = []
     player1_rewards = []
@@ -47,9 +44,10 @@ def assess_model(m1, random, e, name):
             previous_turn = turn
             action, _, num_wrong_guesses = player.action(
                 state, possible_actions, turn, False)
-            state, turn, possible_actions, score, _, done = e.move(action)
+            state, turn, possible_actions, score, current_score, done = e.move(action)
             if previous_turn == 0:
-                total_reward += score_to_reward(score)
+                # this may be one off by one because of how reward updates
+                total_reward += score_to_reward(hyper_parameters.reward_function,current_score,score,done)
                 total_score += score
                 if num_wrong_guesses != -1:
                     total_wrong_guesses += num_wrong_guesses
@@ -68,6 +66,7 @@ def assess_model(m1, random, e, name):
     result = str("player: {} accuracy: {} max_score:{} avg_reward: {} max_reward:{}  average_wrong_guesses:{} min_wrong_guesses:{} ").format(
         name, avg_score, max_score, avg_reward, max_reward, average_wrong_guesses, min_wrong_guesses)
     print(result)
+    print()
     return avg_score
 
 
@@ -111,7 +110,7 @@ def main(player1_type, player2_type, train_bots, hyper_parameters):
             state, turn, possible_actions, score,current_score, done = e.move(action)
             if not is_playing_bot:
                 print("score", score)
-            reward = score_to_reward(score)
+            reward = score_to_reward(hyper_parameters.reward_function,current_score,score,done)
             example = Example(
               reward, action_num, previous_possible_actions, possible_actions,
               previous_state.to_observable_state(turn),
@@ -120,6 +119,9 @@ def main(player1_type, player2_type, train_bots, hyper_parameters):
             previous_state = state
             previous_possible_actions = possible_actions
             if(done):
+                if(hyper_parameters.reward_function == PER_GAME):
+                    m1.updateFinalReward(reward)
+                    m2.updateFinalReward(reward*-1)
                 if(current_score[0]>current_score[1]):
                     wins += 1
                 else:
@@ -130,9 +132,9 @@ def main(player1_type, player2_type, train_bots, hyper_parameters):
         if number_of_games % hyper_parameters.accuracy_interval == 0:
             print("win loss ratio: ",wins/(losses+wins))
             print("Epoch: ",number_of_games)
-            avg_score=assess_model(m1, random, e, "player 1")
+            avg_score=assess_model(m1, random, e, "player 1",hyper_parameters)
             best_avg_score = max(avg_score,best_avg_score)
-            assess_model(m2, random, e, "player 2")
+            assess_model(m2, random, e, "player 2",hyper_parameters)
             wins = 0
             losses = 0
             if type(m1) == DQNAgent:

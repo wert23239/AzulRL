@@ -155,3 +155,9 @@ class DQNAgent():
         model.compile(loss="mean_squared_error",
                       optimizer=Adam(lr=self.learning_rate))
         return model
+
+    def updateFinalReward(self,reward):
+        example = self.memory.pop()
+        example.done = True
+        example.reward = reward
+        self.memory.append(example)
