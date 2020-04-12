@@ -100,6 +100,7 @@ def main(player1_type, player2_type, train_bots, hyper_parameters):
         state, turn, possible_actions = e.reset()
         done = False
         previous_state = state  # FIX LATER
+        previous_possible_actions = possible_actions
         while not done:
             if turn == 0:
                 player = m1
@@ -112,11 +113,12 @@ def main(player1_type, player2_type, train_bots, hyper_parameters):
                 print("score", score)
             reward = score_to_reward(score)
             example = Example(
-              reward, action_num, possible_actions,
+              reward, action_num, previous_possible_actions, possible_actions,
               previous_state.to_observable_state(turn),
               state.to_observable_state(turn), done)
             player.save(example)
             previous_state = state
+            previous_possible_actions = possible_actions
             if(done):
                 if(current_score[0]>current_score[1]):
                     wins += 1

@@ -17,7 +17,7 @@ class RandomOrOverride:
       res = self.override[self.override_index]
       self.override_index += 1
       return res
-  
+
   def random_range_cont(self):
     if self.override_index >= len(self.override):
       return random.random()

@@ -1,11 +1,13 @@
 import random
 from collections import defaultdict, deque
 
-from keras import Sequential
-from keras.layers import Dense
+from keras import Model, Sequential
+from keras import backend as K
+from keras.layers import Dense, Input, Lambda, Multiply, merge, Subtract
 from keras.optimizers import Adam
 from numpy import argmax, array
 
+import action
 from action import Action
 from constants import NUMBER_OF_CIRCLES, NUMBER_OF_COLORS, NUMBER_OF_ROWS
 from random_or_override import RandomOrOverride
@@ -39,11 +41,29 @@ class DQNAgent():
         self.epsilon = max(self.epsilon_min, self.epsilon)
         if train and self.random_or_override.random_range_cont() < self.epsilon:
             l = list(possible_actions)
-            return (self.random_or_override.random_sample(l, 1)[0], 0, -1)
+            result = self.random_or_override.random_sample(l, 1)[0]
+            if result not in possible_actions:
+              raise Exception
+            return (result, self.encode_action(result), -1)
         observable_state = state.to_observable_state(turn)
-        return self.get_best_possible_action(
-            self.model.predict(array([observable_state]))[0], possible_actions
-        )
+        state_as_example = array([observable_state])
+        action_mask, final_mask = self.convert_action_space_to_bit_mask(possible_actions)
+        predictions =  self.model.predict([state_as_example,action_mask, final_mask])[0]
+        choosen_action = argmax(predictions)
+        if self.convert_action_num(choosen_action) not in possible_actions:
+          raise Exception
+        return (self.convert_action_num(choosen_action),choosen_action,0) # Figure out how to get wrong guess
+
+    def convert_action_space_to_bit_mask(self,possible_actions):
+        action_mask = [0]*ACTION_SPACE
+        output_mask = [1]*ACTION_SPACE
+        for action in possible_actions:
+          action_num = self.encode_action(action)
+          action_mask[action_num] = 1
+          output_mask[action_num] = 0
+
+        return array([action_mask]), array([output_mask])
+
 
     def get_best_possible_action(self, prediction, possible_actions):
         prediction_list = prediction.argsort().tolist()
@@ -60,7 +80,14 @@ class DQNAgent():
             wrong_guesses += 1
         raise Exception
 
-    def convert_action_num(self, action_number):  # TEST
+    def encode_action(self, action):
+        action_num = action.circle * 30
+        action_num += (action.color-1) * 6
+        action_num += action.row
+        return action_num
+
+
+    def convert_action_num(self, action_number):
         circle = action_number // (NUMBER_OF_COLORS * NUMBER_OF_ROWS)
         action_number = action_number % (NUMBER_OF_COLORS * NUMBER_OF_ROWS)
         color = action_number // (NUMBER_OF_ROWS) + 1
@@ -79,19 +106,22 @@ class DQNAgent():
         samples = random.sample(self.memory, batch_size)
         for sample in samples:
             example = sample
-            target = self.target_model.predict(array([example.state]))
+            action_mask, final_mask = self.convert_action_space_to_bit_mask(example.possible_actions)
+            next_action_mask, next_final_mask = self.convert_action_space_to_bit_mask(example.next_possible_actions)
+            state_as_example = array([example.state])
+            next_state_as_example = array([example.next_state])
+            action_mask_as_example = array([action_mask])
+            next_action_mask_as_example = array([next_action_mask])
+            target = self.target_model.predict([state_as_example,action_mask,final_mask])
+            if self.convert_action_num(example.action) not in example.possible_actions:
+              raise Exception
             if sample.done:
                 target[0][example.action] = example.reward
             else:
-                prediction = self.target_model.predict(
-                    array([example.next_state]))[0]
-                action = self.get_best_possible_action(
-                    prediction, example.possible_actions
-                )[1]
-                Q_future = prediction[action]
+                Q_future = max(self.target_model.predict([next_state_as_example,next_action_mask,next_final_mask])[0])
                 reward = example.reward + Q_future * self.discount_factor
                 target[0][example.action] = reward
-            self.model.fit(array([example.state]),
+            self.model.fit([state_as_example,action_mask,final_mask],
                            target, epochs=1, verbose=0)
         if self.train_count % self.target_train_interal == 0:
             self.__target_train()
@@ -107,10 +137,21 @@ class DQNAgent():
 
     def __create_model(self):
         model = Sequential()
-        model.add(Dense(24, input_dim=STATE_SPACE, activation='relu'))
-        model.add(Dense(48, activation="relu"))
-        model.add(Dense(24, activation='relu'))
-        model.add(Dense(ACTION_SPACE))
+        main_input = Input(shape = (STATE_SPACE,))
+        dense1 = Dense(24, activation='relu')(main_input)
+        dense2 = Dense(48, activation='relu')(dense1)
+        dense3 = Dense(24, activation='relu')(dense2)
+        dense_advantage = Dense(24, activation='relu')(dense3)
+        advantage = Dense(ACTION_SPACE)(dense_advantage)
+        dense_value = Dense(24, activation='relu')(dense3)
+        value = Dense(1)(dense_value)
+        action_mask = Input(shape = (ACTION_SPACE,))
+        dense_action_mask = Dense(ACTION_SPACE, activation='relu')(action_mask)
+        advantage_masked = Multiply()([advantage, action_mask]) # [.24,.8,.63] * [1,0,1]=
+        final_mask = Input(shape = (ACTION_SPACE,))
+        policy = Lambda(lambda x: x[0]-K.mean(x[0])+x[1], (ACTION_SPACE,))([advantage_masked, value])
+        policy_masked = Subtract()([policy, final_mask])
+        model = Model(inputs=[main_input, action_mask, final_mask], outputs=[policy_masked])
         model.compile(loss="mean_squared_error",
                       optimizer=Adam(lr=self.learning_rate))
         return model
