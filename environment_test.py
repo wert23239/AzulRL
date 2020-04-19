@@ -24,15 +24,6 @@ class EnvironmentMethods(unittest.TestCase):
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
         self.all_numbers_on_same_circle_environment = Environment(self.all_numbers_on_same_circle_override)
 
-    # def runTest(self):
-    #     self.test_setup_all_numbers_equal()
-    #     self.test_row_filling_move_all_numbers_equal()
-    #     self.test_non_row_filling_move_all_numbers_equal()
-    #     self.test_floor_move_all_numbers_equal()
-    #     self.test_row_finishing_move_all_numbers_equal()
-    #     self.test_round_finishing_move_all_numbers_equal()
-    #     self.test_all_different_numbers_on_circle()
-
     def test_setup_all_numbers_equal(self):
         _, turn, possible_moves = self.all_numbers_on_same_circle_environment.reset()
         self.assertEqual(turn, 1)
