@@ -29,4 +29,4 @@ class HyperParameters:
    # How many epochs ot train the target
    target_train_interval: int = 2
    # Which reward function to use
-   reward_function : int = PER_GAME
+   reward_function : int = PER_TURN
