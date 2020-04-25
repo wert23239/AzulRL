@@ -11,6 +11,7 @@ class HumanPlayer:
     def __init__(self, name):
         random = RandomOrOverride()
         hyper_parameters = HyperParameters()
+        self.name = name
         self.dqn_agent = DQNAgent(random, hyper_parameters, name, human=True)
 
     def action(self, state, possible_actions, turn, _):
@@ -19,6 +20,7 @@ class HumanPlayer:
                        [4, 5, 1, 2, 3],
                        [3, 4, 5, 1, 2],
                        [2, 3, 4, 5, 1]]
+        print("name: ", self.name)
         print("------ Your Mosaic (Left) ----- Mosaic Template (Right): -----")
         for i, row in enumerate(state.mosaics[turn]):
             print(i, row, "\t\t\t", mosaic_template[i])

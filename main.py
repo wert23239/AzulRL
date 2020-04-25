@@ -44,11 +44,11 @@ def assess_model(m1, random, e, name, hyper_parameters):
             previous_turn = turn
             action, _, num_wrong_guesses = player.action(
                 state, possible_actions, turn, False)
-            state, turn, possible_actions, score, current_score, done = e.move(action)
+            state, turn, possible_actions, score_delta, current_scores, done = e.move(action)
             if previous_turn == 0:
                 # this may be one off by one because of how reward updates
-                total_reward += score_to_reward(hyper_parameters.reward_function,current_score,score,done)
-                total_score += score
+                total_reward += score_to_reward(hyper_parameters.reward_function, score_delta, current_scores, done)
+                total_score += score_delta
                 if num_wrong_guesses != -1:
                     total_wrong_guesses += num_wrong_guesses
                 else:
@@ -104,17 +104,18 @@ def main(player1_type, player2_type, train_bots, hyper_parameters):
             else:
                 player = m2
             action, _, _ = player.action(state, possible_actions, turn, is_playing_bot)
-            state, turn, possible_actions, score,current_score, done = e.move(action)
+            state, turn, possible_actions, score_delta, current_scores, done = e.move(action)
             if not is_playing_bot:
-                print("score", score)
-            reward = score_to_reward(hyper_parameters.reward_function,current_score,score,done)
+                print("score delta: ", score_delta)
+                print("current scores: ", current_scores)
+            reward = score_to_reward(hyper_parameters.reward_function, score_delta, current_scores, done)
             example = Example(reward, done)
             player.save(example)
             if(done):
                 if(hyper_parameters.reward_function == PER_GAME):
                     m1.updateFinalReward(reward)
                     m2.updateFinalReward(reward*-1)
-                if(current_score[0]>current_score[1]):
+                if(current_scores[0]>current_scores[1]):
                     wins += 1
                 else:
                     losses += 1
