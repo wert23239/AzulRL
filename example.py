@@ -1,11 +1,12 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+
 
 @dataclass
 class Example:
    reward: int
-   action: int
-   possible_actions : list
-   next_possible_actions: list
-   state: list
-   next_state: list
    done: bool
+   action: int = -1
+   possible_actions : list = field(default_factory=list)
+   state: list = field(default_factory=list)
+   next_possible_actions: list = field(default_factory=list)
+   next_state: list = field(default_factory=list)
