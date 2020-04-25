@@ -133,5 +133,5 @@ dmypy.json
 
 
 # models
-DQN_weights.h5
-DQN_target_weights.h5
+DQN_weights*
+DQN_target*

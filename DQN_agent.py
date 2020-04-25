@@ -43,7 +43,7 @@ class DQNAgent():
 
         self.model = self.__create_model()
         if human:  # Add check for weights file exisiting
-            self.model.load_weights("DQN_weights_{0}.h5".format(self.name))
+            self.model.load_weights("DQN_complete_weights_{0}.h5".format(self.name))
         self.target_model = self.__create_model()
 
     def action(self, state, possible_actions, turn, train):
