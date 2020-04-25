@@ -18,7 +18,7 @@ STATE_SPACE =  185
 ACTION_SPACE = 180
 
 class DQNAgent():
-    def __init__(self, random_or_override,hyper_parameters, human=False):
+    def __init__(self, random_or_override,hyper_parameters,name,human=False):
         self.batch_size =  hyper_parameters.batch_size
         self.random_or_override = random_or_override
         self.memory = deque(maxlen=hyper_parameters.memory_length)
@@ -38,14 +38,16 @@ class DQNAgent():
         self.previous_possible_actions = []
         self.possible_actions = []
         self.tau = 0.125
+        self.name = name
         self.first_choices = defaultdict(int)
 
         self.model = self.__create_model()
         if human:  # Add check for weights file exisiting
-            self.model.load_weights('DQN_complete_weights.h5')
+            self.model.load_weights("DQN_weights_{0}.h5".format(self.name))
         self.target_model = self.__create_model()
 
     def action(self, state, possible_actions, turn, train):
+        state = state.to_observable_state(turn)
         self.previous_state = self.state
         self.state = state
         self.previous_possible_actions = self.possible_actions
@@ -164,8 +166,8 @@ class DQNAgent():
                            target, epochs=1, verbose=0)
         if self.train_count % self.target_train_interal == 0:
             self.__target_train()
-            self.model.save_weights("DQN_weights.h5")
-            self.model.save_weights("DQN_target_weights.h5")
+            self.model.save_weights("DQN_weights_{0}.h5".format(self.name))
+            self.model.save_weights("DQN_target_weights_{0}.h5".format(self.name))
 
     def __target_train(self):
         weights = self.model.get_weights()
@@ -188,7 +190,7 @@ class DQNAgent():
         advantage_masked = Multiply()([advantage, action_mask]) # [.24,.8,.63] * [1,0,1]=
         final_mask = Input(shape = (ACTION_SPACE,))
         policy = Lambda(lambda x: x[0]-K.mean(x[0])+x[1], (ACTION_SPACE,))([advantage_masked, value])
-        policy_masked = Subtract()([policy, final_mask])
+        policy_masked = Subtract()([policy, final_mask]) #[.77,.56,.23] - [10,0,10] =
         model = Model(inputs=[main_input, action_mask, final_mask], outputs=[policy_masked])
         model.compile(loss="mean_squared_error",
                       optimizer=Adam(lr=self.learning_rate))

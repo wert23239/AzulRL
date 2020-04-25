@@ -13,7 +13,7 @@ class HyperParameters:
    # How many examples should the model remember
    memory_length: int = 5000
    # How future reward in the same count towards the next game
-   discount_factor: float =  .85
+   discount_factor: float = .99
    # Minimum  exploration value
    epsilon_min: float = .01
    # The amount of epislon decay per training
@@ -29,4 +29,4 @@ class HyperParameters:
    # How many epochs ot train the target
    target_train_interval: int = 2
    # Which reward function to use
-   reward_function : int = PER_TURN
+   reward_function : int = PER_GAME
