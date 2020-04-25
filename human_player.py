@@ -1,11 +1,17 @@
-from action import Action
-import environment_state
 import random
+
+import environment_state
+from action import Action
+from random_or_override import RandomOrOverride
+from hyper_parameters import HyperParameters
+from DQN_agent import DQNAgent
 
 
 class HumanPlayer:
     def __init__(self):
-        pass
+        random = RandomOrOverride()
+        hyper_parameters = HyperParameters()
+        self.dqn_agent = DQNAgent(random, hyper_parameters, human=True)
 
     def action(self, state, possible_actions, turn, _):
         mosaic_template = [[1, 2, 3, 4, 5],
@@ -48,8 +54,9 @@ class HumanPlayer:
         while True:
             if user_action_str == 'r':
                 random_action_idx = random.randint(0, len(possible_actions))
-                return (list(possible_actions)[random_action_idx], 0, 1)
-                continue
+                return (list(possible_actions)[random_action_idx], 0, -1)
+            elif user_action_str == 'b':
+                return self.dqn_agent.action(state, possible_actions, turn, False)
             user_actions = user_action_str.split(",")
             if len(user_actions) == 3:
                 # The following will crash the program if the user's input isn't
@@ -59,6 +66,9 @@ class HumanPlayer:
                 if my_action in possible_actions:
                     return (my_action,0,-1)
             user_action_str = input("Invalid action, try again:\n\n")
+
+    def get_action_from_bot(self, turn):
+        return Action(0, 0, 0)
 
     def save(self, example):
         pass
