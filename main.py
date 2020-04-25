@@ -78,7 +78,7 @@ def main(player1_type, player2_type, train_bots, hyper_parameters):
     elif player1_type == "random":
         m1 = RandomModel(random)
     elif player1_type == "human":
-        m1 = HumanPlayer()
+        m1 = HumanPlayer("alex")
     else:
         m1 = AIAlgorithm()
     if player2_type == "bot":
@@ -86,7 +86,7 @@ def main(player1_type, player2_type, train_bots, hyper_parameters):
     elif player2_type == "random":
         m2 = RandomModel(random)
     elif player2_type == "human":
-        m2 = HumanPlayer()
+        m2 = HumanPlayer("erica")
     else:
         m2 = AIAlgorithm()
     e = Environment(random)

@@ -8,10 +8,10 @@ from DQN_agent import DQNAgent
 
 
 class HumanPlayer:
-    def __init__(self):
+    def __init__(self, name):
         random = RandomOrOverride()
         hyper_parameters = HyperParameters()
-        self.dqn_agent = DQNAgent(random, hyper_parameters, human=True)
+        self.dqn_agent = DQNAgent(random, hyper_parameters, name, human=True)
 
     def action(self, state, possible_actions, turn, _):
         mosaic_template = [[1, 2, 3, 4, 5],
