@@ -1,5 +1,6 @@
 from action import Action
 import environment_state
+import random
 
 
 class HumanPlayer:
@@ -45,6 +46,10 @@ class HumanPlayer:
         user_action_str = input(
             "And refer to the floor of your board as row 5:\n\n")
         while True:
+            if user_action_str == 'r':
+                random_action_idx = random.randint(0, len(possible_actions))
+                return (list(possible_actions)[random_action_idx], 0, 1)
+                continue
             user_actions = user_action_str.split(",")
             if len(user_actions) == 3:
                 # The following will crash the program if the user's input isn't

@@ -14,6 +14,7 @@ class Environment:
         self.previous_rewards = [0, 0]  # players 1 and 2 both have scores of 0
         self.total_rewards = [0,0]
         self.done = False
+        self.has_full_row = False
 
         # First, all tiles start in the bag.
         tile_locations = {
@@ -84,17 +85,17 @@ class Environment:
         self.previous_rewards[self.turn] = reward
         self.total_rewards[self.turn] = reward
         net_reward = reward - self.previous_rewards[(self.turn + 1) % 2]
-        if not self.done:
-            if self.end_of_round():
-                self.turn = self.state.one_piece
-                self.state.one_piece = UNASSIGNED
-                # This would only happen in the very rare case where nothing ever goes into the center.
-                if self.turn == UNASSIGNED:
-                    self.turn = self.random_or_override.random_range(0, 1)
-                self.prepare_next_round()
-            else:
-                self.turn = (self.turn + 1) % 2
-            self.find_possible_moves()
+        if self.end_of_round():
+            self.turn = self.state.one_piece
+            self.state.one_piece = UNASSIGNED
+            # This would only happen in the very rare case where nothing ever goes into the center.
+            if self.turn == UNASSIGNED:
+                self.turn = self.random_or_override.random_range(0, 1)
+            self.prepare_next_round()
+            self.done = self.has_full_row
+        else:
+            self.turn = (self.turn + 1) % 2
+        self.find_possible_moves()
         return self.state, self.turn, set(self.possible_moves), net_reward, self.total_rewards, self.done
 
     def prepare_next_round(self):
@@ -211,7 +212,7 @@ class Environment:
         self.state.mosaic_bonuses[self.turn][ROW_BONUS][row] += 1
         if self.state.mosaic_bonuses[self.turn][ROW_BONUS][row] == 5:
             reward += 2
-            self.done = True
+            self.has_full_row = True
         return reward
 
     def vertical_and_horizontal_neighbors(self, grid, row, col):
