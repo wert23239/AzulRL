@@ -43,7 +43,7 @@ def assess_model(m1, random, e, name, hyper_parameters):
                 player = m2
             previous_turn = turn
             action, _, num_wrong_guesses = player.action(
-                state.to_observable_state(turn), possible_actions, turn, False)
+                state, possible_actions, turn, False)
             state, turn, possible_actions, score, current_score, done = e.move(action)
             if previous_turn == 0:
                 # this may be one off by one because of how reward updates
@@ -74,7 +74,7 @@ def main(player1_type, player2_type, train_bots, hyper_parameters):
     random = RandomOrOverride()
     best_avg_score=0
     if player1_type == "bot":
-        m1 = DQNAgent(random, hyper_parameters, player2_type == "human")
+        m1 = DQNAgent(random, hyper_parameters,"alex",player2_type == "human")
     elif player1_type == "random":
         m1 = RandomModel(random)
     elif player1_type == "human":
@@ -82,7 +82,7 @@ def main(player1_type, player2_type, train_bots, hyper_parameters):
     else:
         m1 = AIAlgorithm()
     if player2_type == "bot":
-        m2 = DQNAgent(random, hyper_parameters, player1_type == "human")
+        m2 = DQNAgent(random, hyper_parameters,"erica", player1_type == "human")
     elif player2_type == "random":
         m2 = RandomModel(random)
     elif player2_type == "human":
@@ -103,8 +103,7 @@ def main(player1_type, player2_type, train_bots, hyper_parameters):
                 player = m1
             else:
                 player = m2
-            action, _, _ = player.action(
-                 state.to_observable_state(turn), possible_actions, turn, is_playing_bot)
+            action, _, _ = player.action(state, possible_actions, turn, is_playing_bot)
             state, turn, possible_actions, score,current_score, done = e.move(action)
             if not is_playing_bot:
                 print("score", score)
