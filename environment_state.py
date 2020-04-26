@@ -38,6 +38,13 @@ class EnvironmentState:
     def get_floors_in_order(self, player):
       return [self.floors[player], self.floors[(player + 1) % 2]]
 
+    def get_mirrored_one_piece(self, player):
+      if self.one_piece == UNASSIGNED:
+        return 2
+      if self.one_piece == player:
+        return 1
+      return 0
+
     def __hash__(self):
         return hash((self.tile_locations, self.mosaics, self.triangles,
                      self.mosaic_bonuses, self.floors, self.one_piece,
@@ -102,5 +109,5 @@ class EnvironmentState:
                 center_list[color-1] = center_counter[color]
         circles_list = [column for row in circles_array for column in row]
         observable_state += \
-            floors_list + [self.one_piece] + circles_list + center_list
+            floors_list + [self.get_mirrored_one_piece(turn)] + circles_list + center_list
         return np.array(observable_state)
