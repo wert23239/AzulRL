@@ -83,7 +83,7 @@ class Environment:
                                             num_tiles, action.row)
         # Calculate reward and prepare for next turn.
         self.previous_rewards[self.turn] = reward
-        self.total_rewards[self.turn] = reward
+        self.total_rewards[self.turn] += reward
         net_reward = reward - self.previous_rewards[(self.turn + 1) % 2]
         if self.end_of_round():
             self.turn = self.state.one_piece

@@ -1,5 +1,6 @@
 import random
 from collections import defaultdict, deque
+from copy import deepcopy
 
 from jinja2 import Undefined
 from keras import Model, Sequential
@@ -12,6 +13,7 @@ import action
 from action import Action
 from constants import (NUMBER_OF_CIRCLES, NUMBER_OF_COLORS, NUMBER_OF_ROWS,
                        PER_GAME)
+from example import Example
 from random_or_override import RandomOrOverride
 
 STATE_SPACE =  185
@@ -52,7 +54,7 @@ class DQNAgent():
         self.state = state
         self.previous_possible_actions = self.possible_actions
         self.possible_actions = possible_actions
-        self.previous_action = self.current_action
+        self.previous_action = deepcopy(self.current_action)
         self.epsilon = max(self.epsilon_min, self.epsilon)
         if train and self.random_or_override.random_range_cont() < self.epsilon:
             l = list(possible_actions)
@@ -113,7 +115,7 @@ class DQNAgent():
 
 
     def save(self, example):
-        if len(self.previous_state)==0 or len(self.previous_possible_actions)==0:
+        if len(self.previous_state)==0:
             return
         if len(self.previous_possible_actions)==0 or self.previous_action<0:
             raise Exception
@@ -121,7 +123,7 @@ class DQNAgent():
         example.possible_actions = self.previous_possible_actions
         example.next_state = self.state
         example.next_possible_actions = self.possible_actions
-        example.action = self.previous_action
+        example.action = deepcopy(self.previous_action)
 
         self.memory.append(example)
 
@@ -155,7 +157,8 @@ class DQNAgent():
             else:
                 Q_action = self.target_model.predict([next_state_as_example,next_action_mask,next_final_mask])[0]
                 Q_future = max(Q_action)
-                if self.convert_action_num(argmax(Q_action)) not in example.next_possible_actions:
+                if (self.convert_action_num(argmax(Q_action)) not in example.next_possible_actions 
+                    or len(example.next_possible_actions)==0):
                     print(Q_future)
                     print(example.next_possible_actions)
                     print((self.target_model.predict([next_state_as_example,next_action_mask,next_final_mask])[0]))
@@ -197,13 +200,13 @@ class DQNAgent():
         return model
 
     def updateFinalReward(self,reward):
-        example = self.memory.pop()
-        example.done = True
-        example.reward = reward
+        example = Example(reward,True,self.current_action,self.possible_actions,self.state,[],[])
+        self.memory.append(example)
+
+
         self.previous_state = []
         self.state = []
         self.previous_possible_actions = []
         self.possible_actions = []
         self.previous_action = -1
         self.current_action = -1
-        self.memory.append(example)

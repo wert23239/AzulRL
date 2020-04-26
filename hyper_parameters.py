@@ -7,7 +7,7 @@ from constants import PER_GAME, PER_TURN
 @dataclass
 class HyperParameters:
    # Number of games
-   max_games: int = sys.maxsize
+   max_games: int = 50000
    # How many examples to sample from when training
    batch_size: int  = 128
    # How many examples should the model remember

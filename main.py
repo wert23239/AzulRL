@@ -1,5 +1,4 @@
 import sys
-
 import numpy as np
 
 from ai_algorithm import AIAlgorithm
@@ -108,7 +107,10 @@ def main(player1_type, player2_type, train_bots, hyper_parameters):
             if not is_playing_bot:
                 print("score", score)
             reward = score_to_reward(hyper_parameters.reward_function,current_score,score,done)
-            example = Example(reward, done)
+            if(hyper_parameters.reward_function == PER_GAME):
+                example = Example(0, False)
+            else:
+                example = Example(reward, done)
             player.save(example)
             if(done):
                 if(hyper_parameters.reward_function == PER_GAME):
