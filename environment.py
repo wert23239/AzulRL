@@ -116,9 +116,9 @@ class Environment:
         for p in self.state.floors:
             for i, color in enumerate(p):
                 if color != NO_COLOR and color != ONE_TILE:
-                    p[i] = NO_COLOR
                     self.state.tile_locations[color][OUT_OF_PLAY_TEMP] -= 1
                     self.state.tile_locations[color][IN_BOX] += 1
+                p[i] = NO_COLOR
         self.deal_tiles()
 
     def end_of_round(self):
