@@ -281,3 +281,16 @@ Each turn we will immediately find the score of a move and account for bonuses. 
 #### Discount Factor
 
 The actions you make in the game are very limited. There are max of 75 actions per epoch. However, each action can have an affect multiple turns later. This makes it hard to find a solid discount factor. Initially we will start at **.9**.
+
+
+#### Steps for setup within a python3 venv (on MacOS):
+1. Install python3, pip, wheel, and venv
+2. `mkdir v_environment`
+3. `python3 -m venv ../v_environment`
+4. `source ../v_environment/bin/activate`
+5. `pip install` ...
+    * numpy
+    * jinja2
+    * keras
+    * tensorflow
+To leave the virual environment, simply run `deactivate`.

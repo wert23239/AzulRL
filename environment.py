@@ -6,8 +6,9 @@ from action import Action
 
 
 class Environment:
-    def __init__(self, random_or_override):
+    def __init__(self, random_or_override, game_ends_after_round=False):
         self.random_or_override = random_or_override
+        self.game_ends_after_round = game_ends_after_round
 
     def reset(self):
         self.turn = self.random_or_override.random_range(0, 1)
@@ -92,7 +93,7 @@ class Environment:
             if self.turn == UNASSIGNED:
                 self.turn = self.random_or_override.random_range(0, 1)
             self.prepare_next_round()
-            self.done = self.has_full_row
+            self.done = self.has_full_row or self.game_ends_after_round
         else:
             self.turn = (self.turn + 1) % 2
         self.find_possible_moves()
