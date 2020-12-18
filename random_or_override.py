@@ -1,4 +1,5 @@
 import random
+from numpy.random import choice
 
 """
 Returns either a random int, or an overriden value (for testing).
@@ -33,4 +34,12 @@ class RandomOrOverride:
     else:
       res = self.override[self.override_index:self.override_index + k]
       self.override_index += k
+      return res
+
+  def weighted_random_choice(self, population, probability_distribution):
+    if self.override_index >= len(self.override):
+      return choice(population, 1, p=probability_distribution)
+    else:
+      res = self.override[self.override_index]
+      self.override_index += 1
       return res
