@@ -66,7 +66,7 @@ class Environment:
         reward = 0
         if action not in set(self.possible_moves):
             action = random.sample(self.possible_moves, 1)[0]
-            reward -= 10
+            reward -= 1
         # If choosing from the center, we may need to pay a penalty. Either way, get
         # the number of tiles chosen and remove them from the center.
         if action.circle == 5:

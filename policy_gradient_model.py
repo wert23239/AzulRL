@@ -10,16 +10,14 @@ class PolicyGradientModel:
     def __init__(self, random_or_override,hyper_parameters,name="Bilbo",human=False):
         self.gamma = 0.9  # Discount factor for past rewards
         self._create_model()
-        self.optimizer = keras.optimizers.Adam(learning_rate=0.01)
+        self.optimizer = keras.optimizers.Adam(learning_rate=hyper_parameters.learning_rate)
         self.huber_loss = keras.losses.Huber()
         self.action_probs_history = []
         self.critic_value_history = []
         self.episode_count = 0
         self.train_count = 0
         self.random_or_override = random_or_override
-        self.save_interval = hyper_parameters.save_interval
         self.name = name
-        self.print_model_nn = hyper_parameters.print_model_nn
         if human:  # Add check for weights file exisiting
             print("Loading Weights...")
             try:
@@ -105,9 +103,9 @@ class PolicyGradientModel:
         # Clear the loss and reward history
         self.action_probs_history.clear()
         self.critic_value_history.clear()
-        if self.train_count % self.save_interval == 0:
+        if self.train_count % hyper_parameters.save_interval == 0:
             self.model.save_weights("PG_weights_{0}.h5".format(self.name))
-            if self.print_model_nn:
+            if hyper_parameters.print_model_nn:
                 print("printing layers.")
                 for layer in self.model.layers:
                     print("layer: ")

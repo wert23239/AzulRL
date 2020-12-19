@@ -10,7 +10,7 @@ def assess_agent(m1, random, e, name, hyper_parameters):
     wins = 0
     losses = 0
     ties = 0
-    for _ in range(50):
+    for _ in range(hyper_parameters.assess_model_games):
         turn = e.reset()
         done = False
         total_score = 0
