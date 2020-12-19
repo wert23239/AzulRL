@@ -1,6 +1,5 @@
 from ai_util import *
 import copy
-import random
 from environment import Environment
 from random_or_override import RandomOrOverride
 

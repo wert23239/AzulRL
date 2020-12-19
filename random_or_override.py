@@ -9,7 +9,7 @@ class RandomOrOverride:
   def __init__(self, override=[]):
     self.override = override
     self.override_index = 0
-    random.seed()
+    random.seed(69)
 
   def random_range(self, min, max):
     if self.override_index >= len(self.override):
