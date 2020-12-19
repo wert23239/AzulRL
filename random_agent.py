@@ -6,5 +6,5 @@ class RandomAgent:
         self.random_or_override = random_or_override
 
     def action(self, environment, _):
-        l = list(environment.possible_actions)
+        l = list(environment.possible_moves)
         return self.random_or_override.random_sample(l, 1)[0]
