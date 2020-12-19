@@ -21,7 +21,10 @@ True and the 'bot' option is used.
 def main(player1_type, player2_type, hyper_parameters):
     random = RandomOrOverride()
     best_avg_score=0
-    bot = TreeSearchAgent(random,hyper_parameters)
+    is_playing_bot = True
+    if(player2_type == "human"):
+        is_playing_bot = False
+    bot = TreeSearchAgent(random,hyper_parameters,"Bilbo",not is_playing_bot)
     if player1_type == "bot":
         m1 = bot
     elif player1_type == "random":
@@ -39,9 +42,6 @@ def main(player1_type, player2_type, hyper_parameters):
     else:
         m2 = AIAlgorithm()
     e = Environment(random, True)
-    is_playing_bot = True
-    if(type(m2) == HumanPlayer):
-        is_playing_bot = False
     wins = 0
     losses = 0
     for number_of_games in range(1,hyper_parameters.max_games):

@@ -41,9 +41,4 @@ class TreeSearchAgent:
             possible_actions_list = list(possible_actions)
             a = self.model.simulated_action(state, possible_actions_list, temp_turn)
             state, temp_turn, possible_actions, _, total_rewards, done = environment.move(a)
-        # print("Reward")
-        # print("Turn",turn)
-        # print("Output",total_rewards)
-        # print("Result",total_rewards[turn] - total_rewards[(turn + 1) % 2])
-        # print("action",action)
         return total_rewards[turn] - total_rewards[(turn + 1) % 2]

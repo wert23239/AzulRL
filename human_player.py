@@ -69,7 +69,7 @@ class HumanPlayer:
                 my_action = Action(
                     int(user_actions[0]), int(user_actions[1]), int(user_actions[2]))
                 if my_action in possible_actions:
-                    return (my_action,0,-1)
+                    return my_action
             user_action_str = input("Invalid action, try again:\n\n")
 
     def get_action_from_bot(self, turn):

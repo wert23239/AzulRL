@@ -20,7 +20,8 @@ class PolicyGradientModel:
         self.save_interval = hyper_parameters.save_interval
         self.name = name
         if human:  # Add check for weights file exisiting
-            self.model.load_weights("PG_complete_weights_{0}.h5".format(self.name))
+            print("Loading Weights...")
+            self.model.load_weights("PG_weights_{0}_complete.h5".format(self.name))
     
     def _create_model(self):
         num_inputs = 185
@@ -66,7 +67,7 @@ class PolicyGradientModel:
         action_probs_list = np.squeeze(action_probs)
         for possible_action in possible_actions:
             encoded_action = self.encode_action(possible_action)
-            pruned_actions[encoded_action] = action_probs_list[encoded_action]
+            pruned_actions[encoded_action] = action_probs_list[encoded_action]   
         return self._convert_action_num(np.argmax(pruned_actions))
 
 
