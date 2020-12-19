@@ -23,7 +23,7 @@ class HyperParameters:
    # How fast the target model transfers knowledge
    tau: float = .125
    # Print the model internals.
-   print_model_nn: bool = False
+   print_model_nn: bool = True
    # How many epoch to evaluate
    accuracy_interval: int = 10
    # How many epoch to the model is saved

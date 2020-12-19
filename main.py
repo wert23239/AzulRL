@@ -44,6 +44,7 @@ def main(player1_type, player2_type, hyper_parameters):
     e = Environment(round_limit=1, random_seed=hyper_parameters.environment_random_seed)
     wins = 0
     losses = 0
+    ties = 0
     for number_of_games in range(1,hyper_parameters.max_games):
         turn = e.reset()
         done = False
@@ -60,15 +61,18 @@ def main(player1_type, player2_type, hyper_parameters):
             if(done):
                 if(current_scores[0]>current_scores[1]):
                     wins += 1
+                elif(current_scores[1]<current_scores[0]):
+                    losses +=1
                 else:
-                    losses += 1
+                    ties += 1
         if number_of_games % hyper_parameters.accuracy_interval == 0:
-            print("win loss ratio: ",wins/(losses+wins))
+            print("win loss ratio: ",wins/(losses+wins+ties))
             print("Epoch: ",number_of_games)
             avg_score=assess_agent(m1, random, e, "player 1",hyper_parameters)
             best_avg_score = max(avg_score,best_avg_score)
             wins = 0
             losses = 0
+            ties = 0
     return best_avg_score
 
 

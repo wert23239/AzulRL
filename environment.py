@@ -12,7 +12,7 @@ class Environment:
         self.round_limit = round_limit
 
     def reset(self):
-        self.random_or_override = RandomOrOverride(override=random_override, seed=random_seed)
+        self.random_or_override = RandomOrOverride(override=self.random_override, seed=self.random_seed)
         self.turn = self.random_or_override.random_range(0, 1)
         self.previous_rewards = [0, 0]  # players 1 and 2 both have scores of 0
         self.total_rewards = [0,0]

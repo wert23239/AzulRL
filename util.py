@@ -9,6 +9,7 @@ def assess_agent(m1, random, e, name, hyper_parameters):
     player1_wrong_guesses = []
     wins = 0
     losses = 0
+    ties = 0
     for _ in range(50):
         turn = e.reset()
         done = False
@@ -33,13 +34,15 @@ def assess_agent(m1, random, e, name, hyper_parameters):
             wins += 1
         elif (total_reward < 0):
             losses += 1
+        else:
+            ties += 1
     avg_score = sum(player1_scores) / len(player1_scores)
     max_score = max(player1_scores)
     avg_reward = sum(player1_rewards) / len(player1_rewards)
     max_reward = max(player1_rewards)
     result = str("player: {} avg_score: {} max_score:{} avg_reward: {} max_reward:{} ").format(
         name, avg_score, max_score, avg_reward, max_reward)
-    print("win loss ratio against random: ",wins/(losses+wins))
+    print("win loss ratio against random: ",wins/(losses+wins+ties))
     print(result)
     print()
     return avg_score
