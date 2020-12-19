@@ -6,11 +6,13 @@ from action import Action
 
 
 class Environment:
-    def __init__(self, random_or_override, round_limit=None):
-        self.random_or_override = random_or_override
+    def __init__(self, round_limit=None, random_override=[], random_seed=None):
+        self.random_override = random_override
+        self.random_seed = random_seed
         self.round_limit = round_limit
 
     def reset(self):
+        self.random_or_override = RandomOrOverride(override=random_override, seed=random_seed)
         self.turn = self.random_or_override.random_range(0, 1)
         self.previous_rewards = [0, 0]  # players 1 and 2 both have scores of 0
         self.total_rewards = [0,0]

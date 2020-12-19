@@ -19,12 +19,12 @@ def all_possible_combinations(possible_circles, possible_colors, possible_rows):
 class EnvironmentMethods(unittest.TestCase):
 
     def setUp(self):
-        self.all_numbers_on_same_circle_override = RandomOrOverride(override=[
+        random_override=[
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
-        self.all_numbers_on_same_circle_environment = Environment(self.all_numbers_on_same_circle_override)
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        self.all_numbers_on_same_circle_environment = Environment(random_override=random_override)
 
     def test_setup_all_numbers_equal(self):
         turn = self.all_numbers_on_same_circle_environment.reset()
@@ -109,10 +109,10 @@ class EnvironmentMethods(unittest.TestCase):
                          all_possible_combinations(range(5), [1], [0, 1, 4, 5]))
     
     def test_all_different_numbers_on_circle(self):
-        random_or_override = RandomOrOverride(override=[
+        random_override=[
             0, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4,
-            1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4])
-        e = Environment(random_or_override)
+            1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4]
+        e = Environment(random_override=random_override)
         turn = e.reset()
         self.assertEqual(turn, 0)
         possible_moves_list = list(e.possible_moves)
