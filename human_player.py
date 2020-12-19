@@ -17,7 +17,7 @@ class HumanPlayer:
     def action(self,  environment, _):
         turn = environment.turn
         state = environment.state
-        possible_actions = environment.possible_actions
+        possible_actions = environment.possible_moves
         mosaic_template = [[1, 2, 3, 4, 5],
                        [5, 1, 2, 3, 4],
                        [4, 5, 1, 2, 3],

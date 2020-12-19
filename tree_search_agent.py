@@ -32,9 +32,13 @@ class TreeSearchAgent:
             possible_actions_list = list(possible_actions)
             possible_actions_map = self.model.simulated_action(state, possible_actions_list)
             # probabilistically choose action from possible_actions_map
-            action = self.r.weighted_random_choice(possible_actions_list,
+            a = self.r.weighted_random_choice(possible_actions_list,
                 [possible_actions_map[a] for a in possible_actions_list])
-            state, _, possible_actions, _, total_rewards, done = environment.move(action)
-
+            state, _, possible_actions, _, total_rewards, done = environment.move(a)
+        print("Reward")
+        print("Turn",turn)
+        print("Output",total_rewards)
+        print("Result",total_rewards[turn] - total_rewards[(turn + 1) % 2])
+        print("action",action)
         return total_rewards[turn] - total_rewards[(turn + 1) % 2]
 
