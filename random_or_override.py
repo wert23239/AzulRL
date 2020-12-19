@@ -38,7 +38,7 @@ class RandomOrOverride:
 
   def weighted_random_choice(self, population, probability_distribution):
     if self.override_index >= len(self.override):
-      return choice(population, 1, p=probability_distribution)
+      return choice(population, 1, p=probability_distribution)[0]
     else:
       res = self.override[self.override_index]
       self.override_index += 1
