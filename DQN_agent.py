@@ -71,7 +71,7 @@ class DQNAgent():
         if self.convert_action_num(choosen_action) not in possible_actions:
           raise Exception
         self.current_action = choosen_action
-        return (self.convert_action_num(choosen_action),choosen_action,0) # Figure out how to get wrong guess
+        return self.convert_action_num(choosen_action)
 
     def convert_action_space_to_bit_mask(self,possible_actions):
         action_mask = [0]*ACTION_SPACE

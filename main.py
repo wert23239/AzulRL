@@ -4,6 +4,7 @@ import numpy as np
 from ai_algorithm import AIAlgorithm
 from constants import PER_GAME
 from DQN_agent import DQNAgent
+from tree_search_agent import TreeSearchAgent
 from environment import Environment
 from example import Example
 from human_player import HumanPlayer
@@ -29,7 +30,7 @@ def assess_model(m1, random, e, name, hyper_parameters):
     player1_rewards = []
     player1_wrong_guesses = []
     for _ in range(500):
-        state, turn, possible_actions = e.reset()
+        turn = e.reset()
         done = False
         total_score = 0
         total_reward = 0
@@ -41,29 +42,22 @@ def assess_model(m1, random, e, name, hyper_parameters):
             else:
                 player = m2
             previous_turn = turn
-            action, _, num_wrong_guesses = player.action(
-                state, possible_actions, turn, False)
-            state, turn, possible_actions, score_delta, current_scores, done = e.move(action)
+            action = player.action(e, False)
+            turn, _, score_delta, current_scores, done = e.move(action)
             if previous_turn == 0:
                 # this may be one off by one because of how reward updates
                 total_reward += score_to_reward(hyper_parameters.reward_function, score_delta, current_scores, done)
                 total_score += score_delta
-                if num_wrong_guesses != -1:
-                    total_wrong_guesses += num_wrong_guesses
                 else:
                     raise Exception
         player1_scores.append(total_score)
-        player1_wrong_guesses.append(total_wrong_guesses)
         player1_rewards.append(total_reward)
     avg_score = sum(player1_scores) / len(player1_scores)
     max_score = max(player1_scores)
     avg_reward = sum(player1_rewards) / len(player1_rewards)
     max_reward = max(player1_rewards)
-    average_wrong_guesses = sum(
-        player1_wrong_guesses) / len(player1_wrong_guesses)
-    min_wrong_guesses = min(player1_wrong_guesses)
-    result = str("player: {} accuracy: {} max_score:{} avg_reward: {} max_reward:{}  average_wrong_guesses:{} min_wrong_guesses:{} ").format(
-        name, avg_score, max_score, avg_reward, max_reward, average_wrong_guesses, min_wrong_guesses)
+    result = str("player: {} accuracy: {} max_score:{} avg_reward: {} max_reward:{} ").format(
+        name, avg_score, max_score, avg_reward, max_reward)
     print(result)
     print()
     return avg_score
@@ -72,8 +66,9 @@ def assess_model(m1, random, e, name, hyper_parameters):
 def main(player1_type, player2_type, train_bots, hyper_parameters):
     random = RandomOrOverride()
     best_avg_score=0
+    bot = TreeSearchAgent(random)
     if player1_type == "bot":
-        m1 = DQNAgent(random, hyper_parameters,"alex",player2_type == "human")
+        m1 = bot
     elif player1_type == "random":
         m1 = RandomModel(random)
     elif player1_type == "human":
@@ -81,7 +76,7 @@ def main(player1_type, player2_type, train_bots, hyper_parameters):
     else:
         m1 = AIAlgorithm()
     if player2_type == "bot":
-        m2 = DQNAgent(random, hyper_parameters,"erica", player1_type == "human")
+        m2 = bot
     elif player2_type == "random":
         m2 = RandomModel(random)
     elif player2_type == "human":
@@ -95,51 +90,31 @@ def main(player1_type, player2_type, train_bots, hyper_parameters):
     wins = 0
     losses = 0
     for number_of_games in range(1,hyper_parameters.max_games):
-        state, turn, possible_actions = e.reset()
+        turn = e.reset()
         done = False
         while not done:
             if turn == 0:
                 player = m1
             else:
                 player = m2
-            action, _, _ = player.action(state, possible_actions, turn, is_playing_bot)
-            state, turn, possible_actions, score_delta, current_scores, done = e.move(action)
+            action = player.action(e, is_playing_bot)
+            turn, score_delta, current_scores, done = e.move(action)
             if not is_playing_bot:
                 print("score delta: ", score_delta)
                 print("current scores: ", current_scores) 
-            reward = score_to_reward(hyper_parameters.reward_function, score_delta, current_scores, done)
-            if(hyper_parameters.reward_function == PER_GAME):
-                example = Example(0, False)
-            else:
-                example = Example(reward, done)
-            player.save(example)
             if(done):
-                if(hyper_parameters.reward_function == PER_GAME):
-                    m1.updateFinalReward(reward)
-                    m2.updateFinalReward(reward*-1)
                 if(current_scores[0]>current_scores[1]):
                     wins += 1
                 else:
                     losses += 1
-        if number_of_games % hyper_parameters.train_interval == 0 and is_playing_bot:
-            m1.train()
-            m2.train()
         if number_of_games % hyper_parameters.accuracy_interval == 0:
             print("win loss ratio: ",wins/(losses+wins))
             print("Epoch: ",number_of_games)
+            #TODO Move to util
             avg_score=assess_model(m1, random, e, "player 1",hyper_parameters)
             best_avg_score = max(avg_score,best_avg_score)
-            assess_model(m2, random, e, "player 2",hyper_parameters)
             wins = 0
             losses = 0
-            if type(m1) == DQNAgent:
-                total_first_choices = sum(
-                  v for k, v in m1.first_choices.items())
-                first_choice_list = [
-                  (k, round(v*100/total_first_choices, 2))
-                  for k, v in m1.first_choices.items()]
-                print(sorted(first_choice_list, key=lambda x : x[1], reverse=True))
-                m1.first_choices = defaultdict(int)
     return best_avg_score
 
 

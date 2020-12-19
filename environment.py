@@ -56,7 +56,7 @@ class Environment:
         )
         self.deal_tiles()
         self.find_possible_moves()
-        return self.state, self.turn, set(self.possible_moves)
+        return self.turn
 
     def move(self, action):
         reward = 0
@@ -97,7 +97,7 @@ class Environment:
         else:
             self.turn = (self.turn + 1) % 2
         self.find_possible_moves()
-        return self.state, self.turn, set(self.possible_moves), net_reward, self.total_rewards, self.done
+        return self.turn, net_reward, self.total_rewards, self.done
 
     def prepare_next_round(self):
         # Put tiles from both players' filled rows into the box.
