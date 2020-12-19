@@ -17,6 +17,7 @@ class PolicyGradientModel:
         self.episode_count = 0
         self.train_count = 0
         self.random_or_override = random_or_override
+        self.hyper_parameters = hyper_parameters
         self.name = name
         if human:  # Add check for weights file exisiting
             print("Loading Weights...")
@@ -103,9 +104,9 @@ class PolicyGradientModel:
         # Clear the loss and reward history
         self.action_probs_history.clear()
         self.critic_value_history.clear()
-        if self.train_count % hyper_parameters.save_interval == 0:
+        if self.train_count % self.hyper_parameters.save_interval == 0:
             self.model.save_weights("PG_weights_{0}.h5".format(self.name))
-            if hyper_parameters.print_model_nn:
+            if self.hyper_parameters.print_model_nn:
                 print("printing layers.")
                 for layer in self.model.layers:
                     print("layer: ")
