@@ -7,12 +7,13 @@ def assess_agent(m1, random, e, name, hyper_parameters):
     player1_scores = []
     player1_rewards = []
     player1_wrong_guesses = []
-    for _ in range(500):
+    wins = 0
+    losses = 0
+    for _ in range(50):
         turn = e.reset()
         done = False
         total_score = 0
         total_reward = 0
-        total_wrong_guesses = 0
         previous_turn = -1
         while not done:
             if turn == 0:
@@ -28,21 +29,26 @@ def assess_agent(m1, random, e, name, hyper_parameters):
                 total_score += score_delta
         player1_scores.append(total_score)
         player1_rewards.append(total_reward)
+        if (total_reward > 0):
+            wins += 1
+        elif (total_reward < 0):
+            losses += 1
     avg_score = sum(player1_scores) / len(player1_scores)
     max_score = max(player1_scores)
     avg_reward = sum(player1_rewards) / len(player1_rewards)
     max_reward = max(player1_rewards)
-    result = str("player: {} accuracy: {} max_score:{} avg_reward: {} max_reward:{} ").format(
+    result = str("player: {} avg_score: {} max_score:{} avg_reward: {} max_reward:{} ").format(
         name, avg_score, max_score, avg_reward, max_reward)
+    print("win loss ratio against random: ",wins/(losses+wins))
     print(result)
     print()
     return avg_score
 
 def score_to_reward(reward_function, score_delta, current_scores, done):
     if(reward_function == PER_TURN):
-        if score_delta <= -2:
+        if score_delta < 0:
             return -1
-        if score_delta >= 2:
+        if score_delta > 0:
             return 1
         return 0
     elif(reward_function == PER_GAME):
