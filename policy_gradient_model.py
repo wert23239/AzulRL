@@ -18,9 +18,8 @@ class PolicyGradientModel:
         self.train_count = 0
         self.random_or_override = random_or_override
         self.save_interval = hyper_parameters.save_interval
-        self.print_model_nn = hyper_parameters.print_model_nn
-        self.print_nn_frequency = hyper_parameters.print_model_nn_frequency
         self.name = name
+        self.print_model_nn = hyper_parameters.print_model_nn
         if human:  # Add check for weights file exisiting
             print("Loading Weights...")
             try:
@@ -34,8 +33,10 @@ class PolicyGradientModel:
         num_hidden = 128
 
         inputs = layers.Input(shape=(num_inputs,))
-        common = layers.Dense(num_hidden, activation="relu")(inputs)
-        action = layers.Dense(self.num_actions, activation="softmax")(common)
+        initializer = tf.keras.initializers.GlorotUniform()
+        inputs = layers.Input(shape=(num_inputs,))
+        common = layers.Dense(num_hidden, activation="relu", kernel_initializer=initializer)(inputs)
+        action = layers.Dense(self.num_actions, activation="softmax", kernel_initializer=initializer)(common)
         critic = layers.Dense(1)(common)
 
         self.model = keras.Model(inputs=inputs, outputs=[action, critic])
@@ -58,10 +59,10 @@ class PolicyGradientModel:
         action = self.random_or_override.weighted_random_choice(self.num_actions, np.squeeze(pruned_actions))
         pruned_action_tensor = tf.convert_to_tensor([pruned_actions],dtype=tf.float32)
         self.action_probs_history.append(tf.math.log(pruned_action_tensor[0, action]))
-        if(self.print_model_nn and 
-        self.random_or_override.random_range_cont()>self.print_nn_frequency):
-            print(action_probs)
-            print(pruned_actions)
+        self.action_probs = action_probs
+        self.pruned_actions = pruned_actions
+        self.state = state
+
         return self._convert_action_num(action)
 
 
@@ -82,6 +83,15 @@ class PolicyGradientModel:
 
     def train(self, reward, tape):
         self.train_count += 1
+        if(self.train_count % 2000 == 0):
+            print("printing layers.")
+            for layer in self.model.layers:
+                print("layer: ")
+                print(layer.get_config())
+                print(layer.get_weights()) # list of numpy arrays
+            print("action_probs", self.action_probs)
+            print("pruned_actions", self.pruned_actions)
+            print("state", self.state)
         # Calculate expected value from rewards
         # - At each timestep what was the total reward received after that timestep
         # - Rewards in the past are discounted by multiplying them with gamma
@@ -119,7 +129,16 @@ class PolicyGradientModel:
         self.action_probs_history.clear()
         self.critic_value_history.clear()
         if self.train_count % self.save_interval == 0:
-            self.model.save_weights("PG_weights_{0}.h5".format(self.name))    
+            self.model.save_weights("PG_weights_{0}.h5".format(self.name))
+            if self.print_model_nn:
+                print("printing layers.")
+                for layer in self.model.layers:
+                    print("layer: ")
+                    print(layer.get_config())
+                    print(layer.get_weights()) # list of numpy arrays
+                print("action_probs", self.action_probs)
+                print("pruned_actions", self.pruned_actions)
+
     def _calculate_returns(self, reward, size):
         returns = []
         if reward > 0:
