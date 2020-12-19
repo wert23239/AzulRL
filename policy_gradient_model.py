@@ -48,19 +48,10 @@ class PolicyGradientModel:
         # from environment state
         action_probs, critic_value = self.model(state)
         self.critic_value_history.append(critic_value[0, 0])
+        action = self.random_or_override.weighted_random_choice(self.num_actions, np.squeeze(action_probs))
+        self.action_probs_history.append(tf.math.log(action_probs[0, action]))
 
-        # Sample action from action probability distribution
-        pruned_actions = [0] * self.num_actions
-        action_probs_list = np.squeeze(action_probs)
-        for possible_action in possible_actions:
-            encoded_action = self.encode_action(possible_action)
-            pruned_actions[encoded_action] = action_probs_list[encoded_action]
-        pruned_actions = np.array(pruned_actions) / np.sum(np.array(pruned_actions))
-        action = self.random_or_override.weighted_random_choice(self.num_actions, np.squeeze(pruned_actions))
-        pruned_action_tensor = tf.convert_to_tensor([pruned_actions],dtype=tf.float32)
-        self.action_probs_history.append(tf.math.log(pruned_action_tensor[0, action]))
         self.action_probs = action_probs
-        self.pruned_actions = pruned_actions
         self.state = state
 
         return self._convert_action_num(action)
@@ -73,12 +64,7 @@ class PolicyGradientModel:
         self.critic_value_history.append(critic_value[0, 0])
 
         # Sample action from action probability distribution
-        pruned_actions = [0] * self.num_actions
-        action_probs_list = np.squeeze(action_probs)
-        for possible_action in possible_actions:
-            encoded_action = self.encode_action(possible_action)
-            pruned_actions[encoded_action] = action_probs_list[encoded_action]   
-        return self._convert_action_num(np.argmax(pruned_actions))
+        return self._convert_action_num(np.argmax(action_probs))
 
 
     def train(self, reward, tape):
@@ -128,7 +114,6 @@ class PolicyGradientModel:
                     print(layer.get_config())
                     print(layer.get_weights()) # list of numpy arrays
                 print("action_probs", self.action_probs)
-                print("pruned_actions", self.pruned_actions)
                 print("state", self.state)
 
     def _calculate_returns(self, reward, size):

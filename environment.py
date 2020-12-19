@@ -1,6 +1,7 @@
 from constants import *
 from collections import Counter
 from environment_state import EnvironmentState
+import random
 from random_or_override import RandomOrOverride
 from action import Action
 
@@ -63,6 +64,9 @@ class Environment:
 
     def move(self, action):
         reward = 0
+        if action not in set(self.possible_moves):
+            action = random.sample(self.possible_moves, 1)[0]
+            reward -= 10
         # If choosing from the center, we may need to pay a penalty. Either way, get
         # the number of tiles chosen and remove them from the center.
         if action.circle == 5:
@@ -168,6 +172,8 @@ class Environment:
         reward = 0
         destination = self.state.triangles[self.turn][row]
         if not self.color_will_fit(color, destination):
+            print("User tried to do an illegal action")
+            print("color: ", color, " num_tiles: ", num_tiles, " row: ", row)
             raise Exception
         filled_row = True
         for i, tile in enumerate(destination):
