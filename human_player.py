@@ -4,7 +4,7 @@ import environment_state
 from action import Action
 from random_or_override import RandomOrOverride
 from hyper_parameters import HyperParameters
-from DQN_agent import DQNAgent
+from tree_search_agent import TreeSearchAgent
 
 
 class HumanPlayer:
@@ -12,9 +12,12 @@ class HumanPlayer:
         random = RandomOrOverride()
         hyper_parameters = HyperParameters()
         self.name = name
-        self.dqn_agent = DQNAgent(random, hyper_parameters, name, human=True)
+        self.tree_search_agent = TreeSearchAgent(random, hyper_parameters)
 
-    def action(self, state, possible_actions, turn, _):
+    def action(self,  environment, _):
+        turn = environment.turn
+        state = environment.state
+        possible_actions = environment.possible_actions
         mosaic_template = [[1, 2, 3, 4, 5],
                        [5, 1, 2, 3, 4],
                        [4, 5, 1, 2, 3],
@@ -56,9 +59,9 @@ class HumanPlayer:
         while True:
             if user_action_str == 'r':
                 random_action_idx = random.randint(0, len(possible_actions))
-                return (list(possible_actions)[random_action_idx], 0, -1)
+                return list(possible_actions)[random_action_idx]
             elif user_action_str == 'b':
-                return self.dqn_agent.action(state, possible_actions, turn, False)
+                return self.tree_search_agent.action(environment, False)
             user_actions = user_action_str.split(",")
             if len(user_actions) == 3:
                 # The following will crash the program if the user's input isn't
@@ -71,12 +74,3 @@ class HumanPlayer:
 
     def get_action_from_bot(self, turn):
         return Action(0, 0, 0)
-
-    def save(self, example):
-        pass
-
-    def train(self):
-        pass
-
-    def updateFinalReward(self,reward):
-        pass
