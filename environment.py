@@ -65,6 +65,7 @@ class Environment:
     def move(self, action):
         reward = 0
         if action not in set(self.possible_moves):
+            print("wtf")
             action = random.sample(self.possible_moves, 1)[0]
             reward -= 1
         # If choosing from the center, we may need to pay a penalty. Either way, get

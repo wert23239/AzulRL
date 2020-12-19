@@ -11,7 +11,7 @@ class HyperParameters:
    # Number of games for the model to assess
    assess_model_games : int = 1
    # How fast the model learns
-   learning_rate: float = 0.01
+   learning_rate: float = 0.005
    # Print the model internals.
    print_model_nn: bool = False
    # How many epoch to evaluate

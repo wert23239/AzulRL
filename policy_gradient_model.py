@@ -31,21 +31,25 @@ class PolicyGradientModel:
         self.num_actions = 180
         num_hidden = 128
 
-        inputs = layers.Input(shape=(num_inputs,))
+        state_inputs = layers.Input(shape=(num_inputs,))
         initializer = tf.keras.initializers.GlorotUniform()
-        inputs = layers.Input(shape=(num_inputs,))
-        common = layers.Dense(num_hidden, activation="relu", kernel_initializer=initializer)(inputs)
-        action = layers.Dense(self.num_actions, activation="softmax", kernel_initializer=initializer)(common)
-        critic = layers.Dense(1)(common)
+        dense1 = layers.Dense(num_hidden, activation="relu", kernel_initializer=initializer)(state_inputs)
+        dense2 = layers.Dense(self.num_actions, activation="relu", kernel_initializer=initializer)(dense1)
+        possible_action_inputs = layers.Input(shape=(self.num_actions,))
+        possible_action_masked = layers.Add()([dense2, possible_action_inputs]) #[.77,.56,.23] 
+        action = layers.Activation(activation="softmax")(possible_action_masked)
+        critic = layers.Dense(1)(dense2)
 
-        self.model = keras.Model(inputs=inputs, outputs=[action, critic])
+        self.model = keras.Model(inputs=[state_inputs,possible_action_inputs], outputs=[action, critic])
 
     def simulated_action(self, state, possible_actions, turn):
         state = state.to_observable_state(turn)
         state = np.array([state])
+        possible_actions_encoded = self.encode_possible_actions(possible_actions)
         # Predict action probabilities and estimated future rewards
         # from environment state
-        action_probs, critic_value = self.model(state)
+        action_probs, critic_value = self.model([state,possible_actions_encoded])
+
         self.critic_value_history.append(critic_value[0, 0])
         action = self.random_or_override.weighted_random_choice(self.num_actions, np.squeeze(action_probs))
         self.action_probs_history.append(tf.math.log(action_probs[0, action]))
@@ -59,11 +63,21 @@ class PolicyGradientModel:
     def greedy_action(self, state, possible_actions, turn):
         state = state.to_observable_state(turn)
         state = np.array([state])
-        action_probs, critic_value = self.model(state)
+        possible_actions_encoded = self.encode_possible_actions(possible_actions)
+        action_probs, critic_value = self.model([state,possible_actions_encoded])
         self.critic_value_history.append(critic_value[0, 0])
 
         # Sample action from action probability distribution
         return self._convert_action_num(np.argmax(action_probs))
+
+    def encode_possible_actions(self,possible_actions):
+        action_mask = [-10000000000000000000000000000000000]*self.num_actions
+        for action in possible_actions:
+          action_num = self.encode_action(action)
+          action_mask[action_num] = 0.0
+
+        return  tf.convert_to_tensor(np.array([action_mask]),dtype=tf.float32)
+    
 
 
     def train(self, reward, tape):
@@ -95,7 +109,6 @@ class PolicyGradientModel:
 
         # Backpropagation
         loss_value = sum(actor_losses) + sum(critic_losses)
-        # print(loss_value)
         grads = tape.gradient(loss_value, self.model.trainable_variables)
         self.optimizer.apply_gradients((grad, var)
             for (grad, var) in zip(grads, self.model.trainable_variables) if grad is not None)
