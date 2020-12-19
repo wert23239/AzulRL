@@ -41,7 +41,8 @@ def main(player1_type, player2_type, hyper_parameters):
         m2 = HumanPlayer("erica")
     else:
         m2 = AIAlgorithm()
-    e = Environment(random, 1)
+    environment_seeded_random = RandomOrOverride(seed=hyper_parameters.environment_random_seed)
+    e = Environment(environment_seeded_random, 1)
     wins = 0
     losses = 0
     for number_of_games in range(1,hyper_parameters.max_games):

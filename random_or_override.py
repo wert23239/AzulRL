@@ -6,10 +6,10 @@ Returns either a random int, or an overriden value (for testing).
 When overriding, pass in a sequence of ints for this function to return.
 """
 class RandomOrOverride:
-  def __init__(self, override=[]):
+  def __init__(self, override=[], seed=None):
     self.override = override
     self.override_index = 0
-    random.seed(69)
+    random.seed(seed)
 
   def random_range(self, min, max):
     if self.override_index >= len(self.override):

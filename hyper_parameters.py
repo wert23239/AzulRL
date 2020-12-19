@@ -32,4 +32,6 @@ class HyperParameters:
    reward_function : int = PER_GAME
    # How many simulations of tree search to run
    num_simulations : int = 10
+   # Seed to use for random in the environment
+   environment_random_seed : int = 69
    
