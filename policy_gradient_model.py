@@ -18,6 +18,7 @@ class PolicyGradientModel:
         self.train_count = 0
         self.random_or_override = random_or_override
         self.save_interval = hyper_parameters.save_interval
+        self.print_model_nn = hyper_parameters.print_model_nn
         self.name = name
         if human:  # Add check for weights file exisiting
             print("Loading Weights...")
@@ -53,6 +54,9 @@ class PolicyGradientModel:
         action = self.random_or_override.weighted_random_choice(self.num_actions, np.squeeze(pruned_actions))
         pruned_action_tensor = tf.convert_to_tensor([pruned_actions],dtype=tf.float32)
         self.action_probs_history.append(tf.math.log(pruned_action_tensor[0, action]))
+        if(self.print_model_nn and self.random_or_override.random_range_cont()>.9999):
+            print(action_probs)
+            print(pruned_actions)
         return self._convert_action_num(action)
 
 
