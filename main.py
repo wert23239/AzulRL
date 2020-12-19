@@ -38,7 +38,7 @@ def main(player1_type, player2_type, hyper_parameters):
         m2 = HumanPlayer("erica")
     else:
         m2 = AIAlgorithm()
-    e = Environment(random, True)
+    e = Environment(random, 1)
     is_playing_bot = True
     if(type(m2) == HumanPlayer):
         is_playing_bot = False

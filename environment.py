@@ -6,9 +6,9 @@ from action import Action
 
 
 class Environment:
-    def __init__(self, random_or_override, game_ends_after_round=False):
+    def __init__(self, random_or_override, round_limit=None):
         self.random_or_override = random_or_override
-        self.game_ends_after_round = game_ends_after_round
+        self.round_limit = round_limit
 
     def reset(self):
         self.turn = self.random_or_override.random_range(0, 1)
@@ -16,6 +16,7 @@ class Environment:
         self.total_rewards = [0,0]
         self.done = False
         self.has_full_row = False
+        self.round_count = 0
 
         # First, all tiles start in the bag.
         tile_locations = {
@@ -93,7 +94,8 @@ class Environment:
             if self.turn == UNASSIGNED:
                 self.turn = self.random_or_override.random_range(0, 1)
             self.prepare_next_round()
-            self.done = self.has_full_row or self.game_ends_after_round
+            self.round_count += 1
+            self.done = self.has_full_row or (self.round_limit is not None and self.round_count == self.round_limit)
         else:
             self.turn = (self.turn + 1) % 2
         self.find_possible_moves()
