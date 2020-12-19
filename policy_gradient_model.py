@@ -83,15 +83,6 @@ class PolicyGradientModel:
 
     def train(self, reward, tape):
         self.train_count += 1
-        if(self.train_count % 2000 == 0):
-            print("printing layers.")
-            for layer in self.model.layers:
-                print("layer: ")
-                print(layer.get_config())
-                print(layer.get_weights()) # list of numpy arrays
-            print("action_probs", self.action_probs)
-            print("pruned_actions", self.pruned_actions)
-            print("state", self.state)
         # Calculate expected value from rewards
         # - At each timestep what was the total reward received after that timestep
         # - Rewards in the past are discounted by multiplying them with gamma
@@ -138,6 +129,7 @@ class PolicyGradientModel:
                     print(layer.get_weights()) # list of numpy arrays
                 print("action_probs", self.action_probs)
                 print("pruned_actions", self.pruned_actions)
+                print("state", self.state)
 
     def _calculate_returns(self, reward, size):
         returns = []
