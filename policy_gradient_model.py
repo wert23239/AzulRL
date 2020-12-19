@@ -22,7 +22,10 @@ class PolicyGradientModel:
         self.name = name
         if human:  # Add check for weights file exisiting
             print("Loading Weights...")
-            self.model.load_weights("PG_weights_{0}_complete.h5".format(self.name))
+            try:
+                self.model.load_weights("PG_weights_{0}_complete.h5".format(self.name))
+            except:
+                print("No Model :(")
     
     def _create_model(self):
         num_inputs = 185
