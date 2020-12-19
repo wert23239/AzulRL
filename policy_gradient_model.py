@@ -8,7 +8,7 @@ from tensorflow.keras import layers
     
 class PolicyGradientModel:
     def __init__(self, random_or_override,hyper_parameters,name="Bilbo",human=False):
-        self.gamma = 0.99  # Discount factor for past rewards
+        self.gamma = 0.9  # Discount factor for past rewards
         self._create_model()
         self.optimizer = keras.optimizers.Adam(learning_rate=0.01)
         self.huber_loss = keras.losses.Huber()
@@ -19,6 +19,7 @@ class PolicyGradientModel:
         self.random_or_override = random_or_override
         self.save_interval = hyper_parameters.save_interval
         self.print_model_nn = hyper_parameters.print_model_nn
+        self.print_nn_frequency = hyper_parameters.print_model_nn_frequency
         self.name = name
         if human:  # Add check for weights file exisiting
             print("Loading Weights...")
@@ -57,7 +58,8 @@ class PolicyGradientModel:
         action = self.random_or_override.weighted_random_choice(self.num_actions, np.squeeze(pruned_actions))
         pruned_action_tensor = tf.convert_to_tensor([pruned_actions],dtype=tf.float32)
         self.action_probs_history.append(tf.math.log(pruned_action_tensor[0, action]))
-        if(self.print_model_nn and self.random_or_override.random_range_cont()>.9996):
+        if(self.print_model_nn and 
+        self.random_or_override.random_range_cont()>self.print_nn_frequency):
             print(action_probs)
             print(pruned_actions)
         return self._convert_action_num(action)

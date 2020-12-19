@@ -24,14 +24,16 @@ class HyperParameters:
    tau: float = .125
    # Print the model internals.
    print_model_nn: bool = True
+   # How often the model prints.
+   print_model_nn_frequency : float = .99
    # How many epoch to evaluate
-   accuracy_interval: int = 10
+   accuracy_interval: int = 50
    # How many epoch to the model is saved
    save_interval: int = 5
    # Which reward function to use
    reward_function : int = PER_GAME
    # How many simulations of tree search to run
-   num_simulations : int = 10
+   num_simulations : int = 1
    # Seed to use for random in the environment
    environment_random_seed : int = 69
    
