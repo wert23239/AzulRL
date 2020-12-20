@@ -16,8 +16,11 @@ class PolicyGradientModel:
         self.hyper_parameters = hyper_parameters
         self._create_model()
        # Custom tensorboard object
+        file_name = str(hyper_parameters)
+        file_name = "".join([c for c in file_name if c.isalpha() or c.isdigit() or c == "=" or c==" "]).strip()
+        file_name = "logs/{}-{}-{}".format(name,file_name,int(time.time()))
 
-        self.tensorboard = ModifiedTensorBoard(name, log_dir="logs/{}-{}".format(name, int(time.time())))
+        self.tensorboard = ModifiedTensorBoard(name,log_dir=file_name)
         self.optimizer = keras.optimizers.Adam(learning_rate=hyper_parameters.learning_rate)
         self.huber_loss = keras.losses.Huber()
         self.action_probs_history = []
