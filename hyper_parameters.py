@@ -28,4 +28,6 @@ class HyperParameters:
    round_limit: int = 1
    # Model size. (List of ints, each of which represents the size of a layer in the neural net.)
    model_size: list = field(default_factory=list)
+   def add_layer_to_model(self, layer):
+      self.model_size.append(layer)
    
