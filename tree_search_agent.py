@@ -15,7 +15,7 @@ class TreeSearchAgent:
         self.num_simulations = hyper_parameters.num_simulations
         self.r = random
         self.model = PolicyGradientModel(random,hyper_parameters,name,human)  #RandomModelWithScoredActions(random)
-        self.mc_max_depth = hyper_parameters.mc_max_depth
+        self.mc_max_depth = hyper_parameters.max_depth
 
     def action(self, environment, train,final =False):
         possible_actions_list = list(environment.possible_moves)

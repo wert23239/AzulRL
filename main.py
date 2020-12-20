@@ -43,7 +43,7 @@ def main(player1_type, player2_type, hyper_parameters):
         m2 = HumanPlayer("erica")
     else:
         m2 = AIAlgorithm()
-    e = Environment(round_limit=hyper_parameters.round_limit, random_seed=hyper_parameters.environment_random_seed)
+    e = Environment(round_limit=hyper_parameters.round_limit, random_seed=hyper_parameters.ers)
     wins = 0
     losses = 0
     ties = 0
