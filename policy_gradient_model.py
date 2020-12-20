@@ -36,7 +36,7 @@ class PolicyGradientModel:
                 print("No Model :(")
     
     def _create_model(self):
-        num_inputs = 1480
+        num_inputs = 1240
         self.num_actions = 180
 
         state_inputs = layers.Input(shape=(num_inputs,))
@@ -44,8 +44,8 @@ class PolicyGradientModel:
 
         # "Hidden" layers of the model are configured via hyperparameters
         prev_layer = state_inputs
-        for n in self.hyper_parameters.model_size:
-            dense_layer = layers.Dense(n, activation="relu", kernel_initializer=initializer)(prev_layer)
+        for _ in range(self.hyper_parameters.num_hidden_layers):
+            dense_layer = layers.Dense(self.hyper_parameters.hidden_layers_size, activation="relu", kernel_initializer=initializer)(prev_layer)
             prev_layer = dense_layer
 
         last_layer_before_mask = layers.Dense(self.num_actions, activation="relu", kernel_initializer=initializer)(prev_layer)

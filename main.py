@@ -91,7 +91,6 @@ def main(player1_type, player2_type, hyper_parameters):
 
 if __name__ == "__main__":
     hyper_parmeters = HyperParameters()
-    hyper_parmeters.add_layer_to_model(128)
     player_types = ["random", "bot", "human", "ai"]
     valid_args = (
         len(sys.argv) >= 3

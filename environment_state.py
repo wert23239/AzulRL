@@ -90,12 +90,12 @@ class EnvironmentState:
 
 
         # Next, the mosaic bonuses list.
-        mosaic_bonuses_list = [
-            [p[FIVE_OF_A_KIND][c] for c in p[FIVE_OF_A_KIND]] +
-            p[COLUMN_BONUS] + p[ROW_BONUS]
-            for p in self.get_mosaic_bonuses_in_order(turn)]
-        for l in mosaic_bonuses_list:
-            observable_state += l
+        # mosaic_bonuses_list = [
+        #     [p[FIVE_OF_A_KIND][c] for c in p[FIVE_OF_A_KIND]] +
+        #     p[COLUMN_BONUS] + p[ROW_BONUS]
+        #     for p in self.get_mosaic_bonuses_in_order(turn)]
+        # for l in mosaic_bonuses_list:
+        #     observable_state += l
 
         # Finally, the floors list, circles list, and center list.
         floors_list = [i for p in self.get_floors_in_order(turn) for i in p]
