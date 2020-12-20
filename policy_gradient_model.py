@@ -54,7 +54,7 @@ class PolicyGradientModel:
         action = layers.Activation(activation="softmax")(possible_action_masked)
         critic = layers.Dense(1)(last_layer_before_mask)
 
-        self.model = keras.Model(inputs=[state_inputs,possible_action_inputs], outputs=[action, critic])
+        self.model = keras.Model(inputs=[state_inputs,possible_action_inputs], outputs=[action, critic,last_layer_before_mask])
         self.model.compile()
 
     def simulated_action(self, state, possible_actions, turn):
@@ -89,11 +89,7 @@ class PolicyGradientModel:
         state = state.to_observable_state(turn)
         state = np.array([state])
         possible_actions_encoded = self.encode_possible_actions(possible_actions)
-<<<<<<< Updated upstream
-        action_probs, critic_value, _ = self.model([state,possible_actions_encoded])
-=======
-        action_probs, critic_value = self.model.predict([state,possible_actions_encoded],callbacks=[self.tensorboard] if final else None)
->>>>>>> Stashed changes
+        action_probs, critic_value,_ = self.model.predict([state,possible_actions_encoded],callbacks=[self.tensorboard] if final else None)
         self.critic_value_history.append(critic_value[0, 0])
 
         # Sample action from action probability distribution
