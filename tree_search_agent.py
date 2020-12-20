@@ -16,7 +16,7 @@ class TreeSearchAgent:
         self.r = random
         self.model = PolicyGradientModel(random,hyper_parameters,name,human)  #RandomModelWithScoredActions(random)
 
-    def action(self, environment, train):
+    def action(self, environment, train,final =False):
         possible_actions_list = list(environment.possible_moves)
         if train:
             score_map = defaultdict(list)  # map from action to list of rewards when that action is done
@@ -31,7 +31,7 @@ class TreeSearchAgent:
             
             return max(average_scores.items(), key=operator.itemgetter(1))[0]
         else:
-            return self.model.greedy_action(environment.state, possible_actions_list, environment.turn)
+            return self.model.greedy_action(environment.state, possible_actions_list, environment.turn,final)
 
 
     def _find_action_value(self,action, environment):

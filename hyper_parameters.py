@@ -9,7 +9,7 @@ class HyperParameters:
    # Number of games
    max_games: int = 10000
    # Number of games for the model to assess
-   assess_model_games : int = 1
+   assess_model_games : int = 3
    # How fast the model learns
    learning_rate: float = 0.005
    # Print the model internals.

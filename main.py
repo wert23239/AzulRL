@@ -45,6 +45,7 @@ def main(player1_type, player2_type, hyper_parameters):
     wins = 0
     losses = 0
     ties = 0
+    assess_count = 0
     for number_of_games in range(1,hyper_parameters.max_games):
         turn = e.reset()
         done = False
@@ -72,8 +73,9 @@ def main(player1_type, player2_type, hyper_parameters):
                 print("for Epoch, legal:illegal moves ratio: ", m1.model.legal_moves/(m1.model.legal_moves+m1.model.illegal_moves))
                 print("for Epoch, total moves: ", m1.model.legal_moves+m1.model.illegal_moves)
                 m1.model.legal_moves = 0
-                m1.model.illegal_moves = 0
-            avg_score=assess_agent(m1, random, e, "player 1",hyper_parameters)
+                m1.model.illegal_moves = 0            
+            assess_count +=1
+            avg_score=assess_agent(m1, random, e, "player 1",hyper_parameters,assess_count)
             best_avg_score = max(avg_score,best_avg_score)
             wins = 0
             losses = 0

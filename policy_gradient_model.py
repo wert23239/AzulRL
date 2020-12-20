@@ -1,16 +1,23 @@
-from action import Action
-from constants import (NUMBER_OF_CIRCLES, NUMBER_OF_COLORS, NUMBER_OF_ROWS,
-                       PER_GAME)
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
-    
+import time
+
+from action import Action
+from constants import (NUMBER_OF_CIRCLES, NUMBER_OF_COLORS, NUMBER_OF_ROWS,
+                       PER_GAME)
+from modified_tensorboard import ModifiedTensorBoard
+
+
 class PolicyGradientModel:
     def __init__(self, random_or_override,hyper_parameters,name="Bilbo",human=False):
         self.gamma = 0.9  # Discount factor for past rewards
         self.hyper_parameters = hyper_parameters
         self._create_model()
+       # Custom tensorboard object
+
+        self.tensorboard = ModifiedTensorBoard(name, log_dir="logs/{}-{}".format(name, int(time.time())))
         self.optimizer = keras.optimizers.Adam(learning_rate=hyper_parameters.learning_rate)
         self.huber_loss = keras.losses.Huber()
         self.action_probs_history = []
@@ -47,7 +54,8 @@ class PolicyGradientModel:
         action = layers.Activation(activation="softmax")(possible_action_masked)
         critic = layers.Dense(1)(last_layer_before_mask)
 
-        self.model = keras.Model(inputs=[state_inputs,possible_action_inputs], outputs=[action, critic, last_layer_before_mask])
+        self.model = keras.Model(inputs=[state_inputs,possible_action_inputs], outputs=[action, critic])
+        self.model.compile()
 
     def simulated_action(self, state, possible_actions, turn):
         state = state.to_observable_state(turn)
@@ -77,11 +85,15 @@ class PolicyGradientModel:
         return self._convert_action_num(action)
 
 
-    def greedy_action(self, state, possible_actions, turn):
+    def greedy_action(self, state, possible_actions, turn,final):
         state = state.to_observable_state(turn)
         state = np.array([state])
         possible_actions_encoded = self.encode_possible_actions(possible_actions)
+<<<<<<< Updated upstream
         action_probs, critic_value, _ = self.model([state,possible_actions_encoded])
+=======
+        action_probs, critic_value = self.model.predict([state,possible_actions_encoded],callbacks=[self.tensorboard] if final else None)
+>>>>>>> Stashed changes
         self.critic_value_history.append(critic_value[0, 0])
 
         # Sample action from action probability distribution

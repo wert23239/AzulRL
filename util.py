@@ -1,8 +1,7 @@
 from constants import PER_TURN, PER_GAME
 from random_agent import RandomAgent
 
-
-def assess_agent(m1, random, e, name, hyper_parameters):
+def assess_agent(m1, random, e, name, hyper_parameters,assess_count):
     m2 = RandomAgent(random)
     player1_scores = []
     player1_rewards = []
@@ -10,7 +9,9 @@ def assess_agent(m1, random, e, name, hyper_parameters):
     wins = 0
     losses = 0
     ties = 0
-    for _ in range(hyper_parameters.assess_model_games):
+    if m1.model.tensorboard:
+            m1.model.tensorboard.step = assess_count
+    for i in range(hyper_parameters.assess_model_games):
         turn = e.reset()
         done = False
         total_score = 0
@@ -22,6 +23,9 @@ def assess_agent(m1, random, e, name, hyper_parameters):
             else:
                 player = m2
             previous_turn = turn
+            if(previous_turn == 0  and i==hyper_parameters.assess_model_games-1):
+                player.action(e,False,True)
+                break
             action = player.action(e, False)
             state, turn, _, score_delta, current_scores, done = e.move(action)
             if previous_turn == 0:
@@ -40,6 +44,7 @@ def assess_agent(m1, random, e, name, hyper_parameters):
     max_score = max(player1_scores)
     avg_reward = sum(player1_rewards) / len(player1_rewards)
     max_reward = max(player1_rewards)
+    m1.model.tensorboard.update_stats(avg_score=avg_score,max_score=max_score,avg_reward=avg_reward, reward_max=max_reward)
     result = str("player: {} avg_score: {} max_score:{} avg_reward: {} max_reward:{} ").format(
         name, avg_score, max_score, avg_reward, max_reward)
     print("win loss ratio against random: ",wins/(losses+wins+ties))
