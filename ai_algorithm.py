@@ -1,7 +1,15 @@
-from ai_util import *
 import copy
 from environment import Environment
 from random_or_override import RandomOrOverride
+
+# Define 'INFINITY' and 'NEG_INFINITY'
+try:
+    INFINITY = float("infinity")
+    NEG_INFINITY = float("-infinity")
+# Windows doesn't support 'float("infinity")'.
+except ValueError:
+    INFINITY = float(1e3000)       # However, '1e3000' will overflow and return
+    NEG_INFINITY = float(-1e3000)  # the magic float Infinity value anyway.
 
 
 def alpha_beta_find_state_value(alpha, beta, action, environment, depth):
