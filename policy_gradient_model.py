@@ -29,7 +29,7 @@ class PolicyGradientModel:
                 print("No Model :(")
     
     def _create_model(self):
-        num_inputs = 185
+        num_inputs = 1480
         self.num_actions = 180
 
         state_inputs = layers.Input(shape=(num_inputs,))
@@ -63,7 +63,7 @@ class PolicyGradientModel:
         else:
             self.illegal_moves += 1
 
-        if self.train_count % self.hyper_parameters.save_interval == 0 and self.hyper_parameters.print_model_nn:
+        if self.train_count > 0 and self.train_count % self.hyper_parameters.save_interval == 0 and self.hyper_parameters.print_model_nn:
             print("before pruning: ", best_guess, " Is it in possible_actions? ", legal_move)
             print("so far, ", self.legal_moves, " legal moves and ", self.illegal_moves, " illegal moves.")
 

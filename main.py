@@ -68,6 +68,11 @@ def main(player1_type, player2_type, hyper_parameters):
         if number_of_games % hyper_parameters.accuracy_interval == 0:
             print("win loss ratio: ",wins/(losses+wins+ties))
             print("Epoch: ",number_of_games)
+            if type(m1) == TreeSearchAgent:
+                print("for Epoch, legal:illegal moves ratio: ", m1.model.legal_moves/(m1.model.legal_moves+m1.model.illegal_moves))
+                print("for Epoch, total moves: ", m1.model.legal_moves+m1.model.illegal_moves)
+                m1.model.legal_moves = 0
+                m1.model.illegal_moves = 0
             avg_score=assess_agent(m1, random, e, "player 1",hyper_parameters)
             best_avg_score = max(avg_score,best_avg_score)
             wins = 0

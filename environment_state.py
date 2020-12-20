@@ -110,4 +110,4 @@ class EnvironmentState:
         circles_list = [column for row in circles_array for column in row]
         observable_state += \
             floors_list + [self.get_mirrored_one_piece(turn)] + circles_list + center_list
-        return np.array(observable_state)
+        return np.unpackbits(np.array(observable_state, dtype=np.uint8))
