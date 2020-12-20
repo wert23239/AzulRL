@@ -28,8 +28,9 @@ def assess_agent(m1, random, e, name, hyper_parameters,assess_count):
                 break
             action = player.action(e, False)
             state, turn, _, score_delta, current_scores, done = e.move(action)
-            if previous_turn == 0:
-                # this may be one off by one because of how reward updates
+            if previous_turn == 0 or \
+                (done and hyper_parameters.reward_function == PER_GAME) or \
+                (done and turn == 0):
                 total_reward += score_to_reward(hyper_parameters.reward_function, score_delta, current_scores, done)
                 total_score += score_delta
         player1_scores.append(total_score)
