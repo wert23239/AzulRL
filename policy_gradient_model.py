@@ -12,15 +12,17 @@ from modified_tensorboard import ModifiedTensorBoard
 
 class PolicyGradientModel:
     def __init__(self, random_or_override,hyper_parameters,name="Bilbo",human=False):
-        self.gamma = 0.9  # Discount factor for past rewards
+        self.gamma = hyper_parameters.gamma  # Discount factor for past rewards
         self.hyper_parameters = hyper_parameters
         self._create_model()
        # Custom tensorboard object
         file_name = str(hyper_parameters)
-        file_name = "".join([c for c in file_name if c.isalpha() or c.isdigit() or c == "=" or c==" "]).strip()
-        file_name = "logs/{}-{}-{}".format(name,file_name,int(time.time()))
+        file_name = "".join([c for c in file_name if c.isalpha() or c.isdigit()]).strip()
+        self.file_name = file_name
+        log_name = "logs/{}-{}-{}".format(name,file_name,int(time.time()))
+        print(file_name)
 
-        self.tensorboard = ModifiedTensorBoard(name,log_dir=file_name)
+        self.tensorboard = ModifiedTensorBoard(name,log_dir=log_name)
         self.optimizer = keras.optimizers.Adam(learning_rate=hyper_parameters.learning_rate)
         self.huber_loss = keras.losses.Huber()
         self.action_probs_history = []
@@ -34,7 +36,7 @@ class PolicyGradientModel:
         if human:  # Add check for weights file exisiting
             print("Loading Weights...")
             try:
-                self.model.load_weights("PG_weights_{0}_complete.h5".format(self.name))
+                self.model.load_weights("PG_complete.h5".format(self.name))
             except:
                 print("No Model :(")
     
@@ -47,8 +49,8 @@ class PolicyGradientModel:
 
         # "Hidden" layers of the model are configured via hyperparameters
         prev_layer = state_inputs
-        for _ in range(self.hyper_parameters.num_hidden_layers):
-            dense_layer = layers.Dense(self.hyper_parameters.hidden_layers_size, activation="relu", kernel_initializer=initializer)(prev_layer)
+        for _ in range(self.hyper_parameters.num_hl):
+            dense_layer = layers.Dense(self.hyper_parameters.hl_size, activation="relu", kernel_initializer=initializer)(prev_layer)
             prev_layer = dense_layer
 
         last_layer_before_mask = layers.Dense(self.num_actions, activation="relu", kernel_initializer=initializer)(prev_layer)
@@ -126,7 +128,7 @@ class PolicyGradientModel:
             # of `log_prob` and ended up recieving a total reward = `ret`.
             # The actor must be updated so that it predicts an action that leads to
             # high rewards (compared to critic's estimate) with high probability.
-            diff = ret
+            diff = ret*self.hyper_parameters.alpha
             actor_losses.append(-log_prob * diff)  # actor loss
 
             # The critic must be updated so that it predicts a better estimate of
@@ -146,7 +148,7 @@ class PolicyGradientModel:
         self.action_probs_history.clear()
         self.critic_value_history.clear()
         if self.train_count % self.hyper_parameters.save_interval == 0:
-            self.model.save_weights("PG_weights_{0}.h5".format(self.name))
+            self.model.save_weights("PG_weights_{0}.h5".format(self.file_name))
             if self.hyper_parameters.print_model_nn:
                 print("printing layers.")
                 for layer in self.model.layers:
@@ -158,7 +160,7 @@ class PolicyGradientModel:
 
     def _calculate_returns(self, reward, size):
         returns = []
-        if(self.hyper_parameters.policy_gradient_reward == WIN_LOSS):
+        if(self.hyper_parameters.pgr == WIN_LOSS):
             if reward > 0:
                 reward = 1
             elif reward < 0:

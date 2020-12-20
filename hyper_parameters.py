@@ -9,18 +9,22 @@ class HyperParameters:
    # Number of games
    max_games: int = 10000
    # Number of games for the model to assess
-   assess_model_games : int = 3
+   assess_model_games : int = 20
    # How fast the model learns
    learning_rate: float = 0.005
+   # How fast the model changes gradients
+   alpha: float = 1.0
+   # Discount factor
+   gamma: float = .99
    # Print the model internals.
    print_model_nn: bool = False
    # How many epoch to evaluate
    accuracy_interval: int = 100
    # How many epoch to the model is saved
-   save_interval: int = 10000
+   save_interval: int = 10
    # Which reward function to use
    reward_function : int = PER_GAME
-   policy_gradient_reward : int  = WIN_LOSS
+   pgr: int  = WIN_LOSS
    # How many simulations of tree search to run
    num_simulations : int = 1
    # Seed to use for random in the environment
@@ -28,7 +32,7 @@ class HyperParameters:
    # How many round per game.
    round_limit: int = 1
    # How many hidden layers will exist in the neural net.
-   num_hidden_layers: int = 1
+   num_hl: int = 1
    # Size of the hidden layers in the neural net.
-   hidden_layers_size: int = 128
+   hl_size: int = 128
    

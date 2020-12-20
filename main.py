@@ -22,7 +22,7 @@ True and the 'bot' option is used.
 
 def main(player1_type, player2_type, hyper_parameters):
     random = RandomOrOverride()
-    best_avg_score=0
+    total_avg_score=0
     is_playing_bot = True
     if(player2_type == "human"):
         is_playing_bot = False
@@ -81,13 +81,12 @@ def main(player1_type, player2_type, hyper_parameters):
                 m1.model.legal_moves = 0
                 m1.model.illegal_moves = 0            
             assess_count +=1
-            player_metrics = PlayerMetrics(wins,losses,ties)
             avg_score=assess_agent(m1, random, e, "player 1",hyper_parameters,assess_count,player_metrics)
-            best_avg_score = max(avg_score,best_avg_score)
+            total_avg_score += avg_score
             wins = 0
             losses = 0
             ties = 0
-    return best_avg_score
+    return total_avg_score
 
 
 if __name__ == "__main__":
