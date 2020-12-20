@@ -13,7 +13,7 @@ class HyperParameters:
    # How fast the model learns
    learning_rate: float = 0.005
    # How fast the model changes gradients
-   alpha: float = 1.0
+   alpha: float = 1e-7
    # Discount factor
    gamma: float = .99
    # Print the model internals.

@@ -12,7 +12,7 @@ class HumanPlayer:
         random = RandomOrOverride()
         hyper_parameters = HyperParameters()
         self.name = name
-        self.tree_search_agent = TreeSearchAgent(random, hyper_parameters)
+        self.tree_search_agent = TreeSearchAgent(random, hyper_parameters, human=True)
 
     def action(self,  environment, _):
         turn = environment.turn

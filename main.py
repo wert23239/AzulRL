@@ -24,7 +24,7 @@ def main(player1_type, player2_type, hyper_parameters):
     random = RandomOrOverride()
     total_avg_score=0
     is_playing_bot = True
-    if(player2_type == "human"):
+    if(player1_type == "human" or player2_type == "human"):
         is_playing_bot = False
     bot = TreeSearchAgent(random,hyper_parameters,"Bilbo",not is_playing_bot)
     if player1_type == "bot":
