@@ -1,7 +1,7 @@
 import sys
 from dataclasses import dataclass, field
 
-from constants import PER_GAME, PER_TURN
+from constants import PER_GAME, PER_TURN, WIN_LOSS, SCORE
 
 
 @dataclass
@@ -15,11 +15,12 @@ class HyperParameters:
    # Print the model internals.
    print_model_nn: bool = False
    # How many epoch to evaluate
-   accuracy_interval: int = 100
+   accuracy_interval: int = 1
    # How many epoch to the model is saved
    save_interval: int = 10000
    # Which reward function to use
    reward_function : int = PER_GAME
+   policy_gradient_reward : int  = WIN_LOSS
    # How many simulations of tree search to run
    num_simulations : int = 1
    # Seed to use for random in the environment

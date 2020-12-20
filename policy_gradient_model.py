@@ -6,7 +6,7 @@ import time
 
 from action import Action
 from constants import (NUMBER_OF_CIRCLES, NUMBER_OF_COLORS, NUMBER_OF_ROWS,
-                       PER_GAME)
+                       PER_GAME, WIN_LOSS)
 from modified_tensorboard import ModifiedTensorBoard
 
 
@@ -155,10 +155,11 @@ class PolicyGradientModel:
 
     def _calculate_returns(self, reward, size):
         returns = []
-        if reward > 0:
-            reward = 1
-        elif reward < 0:
-            reward = -1
+        if(self.hyper_parameters.policy_gradient_reward == WIN_LOSS):
+            if reward > 0:
+                reward = 1
+            elif reward < 0:
+                reward = -1
         rewards_history = [0] * (size - 1) + [reward]
 
         # Smallest number such that 1.0 + eps != 1.0

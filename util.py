@@ -1,7 +1,7 @@
 from constants import PER_TURN, PER_GAME
 from random_agent import RandomAgent
 
-def assess_agent(m1, random, e, name, hyper_parameters,assess_count):
+def assess_agent(m1, random, e, name, hyper_parameters,assess_count,player_metrics):
     m2 = RandomAgent(random)
     player1_scores = []
     player1_rewards = []
@@ -46,7 +46,8 @@ def assess_agent(m1, random, e, name, hyper_parameters,assess_count):
     max_score = max(player1_scores)
     avg_reward = sum(player1_rewards) / len(player1_rewards)
     max_reward = max(player1_rewards)
-    m1.model.tensorboard.update_stats(avg_score=avg_score,max_score=max_score,avg_reward=avg_reward, reward_max=max_reward)
+    m1.model.tensorboard.update_stats(avg_score=avg_score,max_score=max_score,avg_reward=avg_reward, reward_max=max_reward,
+    player_wins = player_metrics.wins,player_losses = player_metrics.losses, player_ties= player_metrics.ties,  illegal_moves =  player_metrics.illegal_moves, total_moves = player_metrics.total_moves)
     result = str("player: {} avg_score: {} max_score:{} avg_reward: {} max_reward:{} ").format(
         name, avg_score, max_score, avg_reward, max_reward)
     print("win loss ratio against random: ",wins/(losses+wins+ties))

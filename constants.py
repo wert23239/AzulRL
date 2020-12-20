@@ -24,6 +24,9 @@ PER_TURN = 0
 PER_ROUND = 1
 PER_GAME = 2
 
+WIN_LOSS = 3
+SCORE = 4
+
 # Mosaic Bonuses
 FIVE_OF_A_KIND = 0
 COLUMN_BONUS = 1
