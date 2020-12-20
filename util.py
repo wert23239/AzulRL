@@ -32,7 +32,8 @@ def assess_agent(m1, random, e, name, hyper_parameters,assess_count):
                 (done and hyper_parameters.reward_function == PER_GAME) or \
                 (done and turn == 0):
                 total_reward += score_to_reward(hyper_parameters.reward_function, score_delta, current_scores, done)
-                total_score += score_delta
+            if done:
+                total_score += current_scores[0] - current_scores[1]
         player1_scores.append(total_score)
         player1_rewards.append(total_reward)
         if (total_reward > 0):
@@ -54,13 +55,14 @@ def assess_agent(m1, random, e, name, hyper_parameters,assess_count):
     return avg_score
 
 def score_to_reward(reward_function, score_delta, current_scores, done):
-    if(reward_function == PER_TURN):
-        if score_delta < 0:
-            return -1
-        if score_delta > 0:
-            return 1
-        return 0
-    elif(reward_function == PER_GAME):
+    # TODO: abandon all uses of score_delta
+    # if(reward_function == PER_TURN):
+    #     if score_delta < 0:
+    #         return -1
+    #     if score_delta > 0:
+    #         return 1
+    #     return 0
+    if(reward_function == PER_GAME):
         if(not done):
             return 0
         if(current_scores[0]>current_scores[1]):

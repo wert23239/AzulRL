@@ -19,7 +19,7 @@ class HyperParameters:
    # How many epoch to the model is saved
    save_interval: int = 10000
    # Which reward function to use
-   reward_function : int = PER_TURN
+   reward_function : int = PER_GAME
    # How many simulations of tree search to run
    num_simulations : int = 1
    # Seed to use for random in the environment
