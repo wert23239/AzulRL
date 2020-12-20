@@ -35,4 +35,6 @@ class HyperParameters:
    num_hl: int = 1
    # Size of the hidden layers in the neural net.
    hl_size: int = 128
+   # Max depth for Monte Carlo tree-search.
+   mc_max_depth: int = 7
    

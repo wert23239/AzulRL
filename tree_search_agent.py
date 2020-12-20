@@ -15,6 +15,7 @@ class TreeSearchAgent:
         self.num_simulations = hyper_parameters.num_simulations
         self.r = random
         self.model = PolicyGradientModel(random,hyper_parameters,name,human)  #RandomModelWithScoredActions(random)
+        self.mc_max_depth = hyper_parameters.mc_max_depth
 
     def action(self, environment, train,final =False):
         possible_actions_list = list(environment.possible_moves)
@@ -37,8 +38,10 @@ class TreeSearchAgent:
     def _find_action_value(self,action, environment):
         turn = environment.turn
         state, temp_turn, possible_actions, _, total_rewards, done = environment.move(action)
-        while not done:
+        depth = 0
+        while not done and depth < self.mc_max_depth:
             possible_actions_list = list(possible_actions)
             a = self.model.simulated_action(state, possible_actions_list, temp_turn)
             state, temp_turn, possible_actions, _, total_rewards, done = environment.move(a)
+            depth += 1
         return total_rewards[turn] - total_rewards[(turn + 1) % 2]

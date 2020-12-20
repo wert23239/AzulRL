@@ -17,7 +17,7 @@ def call_azul(learning_rate,alpha,gamma,policy_gradient_reward,num_simulations,e
     alpha=alpha_param,gamma=round(gamma,3), print_model_nn=False,accuracy_interval=100,save_interval=1000,
     reward_function=PER_GAME,pgr=policy_gradient_reward_param,num_simulations=int(num_simulations),
     environment_random_seed=int(environment_random_seed),round_limit=int(round_limit),num_hl=int(num_hl),
-    hl_size=int(hl_size))
+    hl_size=int(hl_size),mc_max_depth=100)
     return azul_main("bot","bot",hyper_parameters)
 
 # Bounded region of parameter space

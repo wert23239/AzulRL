@@ -22,7 +22,8 @@ class PolicyGradientModel:
         log_name = "logs/{}-{}-{}".format(name,file_name,int(time.time()))
         print(file_name)
 
-        self.tensorboard = ModifiedTensorBoard(name,log_dir=log_name)
+        if not human:
+            self.tensorboard = ModifiedTensorBoard(name,log_dir=log_name)
         self.optimizer = keras.optimizers.Adam(learning_rate=hyper_parameters.learning_rate)
         self.huber_loss = keras.losses.Huber()
         self.action_probs_history = []
