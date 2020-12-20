@@ -1,5 +1,5 @@
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from constants import PER_GAME, PER_TURN
 
@@ -26,4 +26,6 @@ class HyperParameters:
    environment_random_seed : int = 69
    # How many round per game.
    round_limit: int = 1
+   # Model size. (List of ints, each of which represents the size of a layer in the neural net.)
+   model_size: list = field(default_factory=list)
    

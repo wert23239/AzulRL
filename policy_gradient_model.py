@@ -9,6 +9,7 @@ from tensorflow.keras import layers
 class PolicyGradientModel:
     def __init__(self, random_or_override,hyper_parameters,name="Bilbo",human=False):
         self.gamma = 0.9  # Discount factor for past rewards
+        self.hyper_parameters = hyper_parameters
         self._create_model()
         self.optimizer = keras.optimizers.Adam(learning_rate=hyper_parameters.learning_rate)
         self.huber_loss = keras.losses.Huber()
@@ -17,8 +18,9 @@ class PolicyGradientModel:
         self.episode_count = 0
         self.train_count = 0
         self.random_or_override = random_or_override
-        self.hyper_parameters = hyper_parameters
         self.name = name
+        self.legal_moves = 0
+        self.illegal_moves = 0
         if human:  # Add check for weights file exisiting
             print("Loading Weights...")
             try:
@@ -29,18 +31,23 @@ class PolicyGradientModel:
     def _create_model(self):
         num_inputs = 185
         self.num_actions = 180
-        num_hidden = 128
 
         state_inputs = layers.Input(shape=(num_inputs,))
         initializer = tf.keras.initializers.GlorotUniform()
-        dense1 = layers.Dense(num_hidden, activation="relu", kernel_initializer=initializer)(state_inputs)
-        dense2 = layers.Dense(self.num_actions, activation="relu", kernel_initializer=initializer)(dense1)
-        possible_action_inputs = layers.Input(shape=(self.num_actions,))
-        possible_action_masked = layers.Add()([dense2, possible_action_inputs]) #[.77,.56,.23] 
-        action = layers.Activation(activation="softmax")(possible_action_masked)
-        critic = layers.Dense(1)(dense2)
 
-        self.model = keras.Model(inputs=[state_inputs,possible_action_inputs], outputs=[action, critic])
+        # "Hidden" layers of the model are configured via hyperparameters
+        prev_layer = state_inputs
+        for n in self.hyper_parameters.model_size:
+            dense_layer = layers.Dense(n, activation="relu", kernel_initializer=initializer)(prev_layer)
+            prev_layer = dense_layer
+
+        last_layer_before_mask = layers.Dense(self.num_actions, activation="relu", kernel_initializer=initializer)(prev_layer)
+        possible_action_inputs = layers.Input(shape=(self.num_actions,))
+        possible_action_masked = layers.Add()([last_layer_before_mask, possible_action_inputs])
+        action = layers.Activation(activation="softmax")(possible_action_masked)
+        critic = layers.Dense(1)(last_layer_before_mask)
+
+        self.model = keras.Model(inputs=[state_inputs,possible_action_inputs], outputs=[action, critic, last_layer_before_mask])
 
     def simulated_action(self, state, possible_actions, turn):
         state = state.to_observable_state(turn)
@@ -48,7 +55,17 @@ class PolicyGradientModel:
         possible_actions_encoded = self.encode_possible_actions(possible_actions)
         # Predict action probabilities and estimated future rewards
         # from environment state
-        action_probs, critic_value = self.model([state,possible_actions_encoded])
+        action_probs, critic_value, action_scores_before_pruning = self.model([state,possible_actions_encoded])
+        best_guess = np.argmax(action_scores_before_pruning)
+        legal_move = self._convert_action_num(best_guess) in set(possible_actions)
+        if (legal_move):
+            self.legal_moves += 1
+        else:
+            self.illegal_moves += 1
+
+        if self.train_count % self.hyper_parameters.save_interval == 0 and self.hyper_parameters.print_model_nn:
+            print("before pruning: ", best_guess, " Is it in possible_actions? ", legal_move)
+            print("so far, ", self.legal_moves, " legal moves and ", self.illegal_moves, " illegal moves.")
 
         self.critic_value_history.append(critic_value[0, 0])
         action = self.random_or_override.weighted_random_choice(self.num_actions, np.squeeze(action_probs))
@@ -64,7 +81,7 @@ class PolicyGradientModel:
         state = state.to_observable_state(turn)
         state = np.array([state])
         possible_actions_encoded = self.encode_possible_actions(possible_actions)
-        action_probs, critic_value = self.model([state,possible_actions_encoded])
+        action_probs, critic_value, _ = self.model([state,possible_actions_encoded])
         self.critic_value_history.append(critic_value[0, 0])
 
         # Sample action from action probability distribution
