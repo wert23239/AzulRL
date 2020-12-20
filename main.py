@@ -1,6 +1,7 @@
 import sys
 import numpy as np
 
+from ai_algorithm import AIAlgorithm
 from environment import Environment
 from human_player import HumanPlayer
 from hyper_parameters import HyperParameters
