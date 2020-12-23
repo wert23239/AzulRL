@@ -37,7 +37,7 @@ def alpha_beta_find_state_value(alpha, beta, action, environment, depth):
 
 
 class AIAlgorithm:
-    def action(self, environment, train, final=False, max_depth=2):
+    def action(self, environment, train, final=False, max_depth=1):
         best_val = None
         for action in environment.possible_moves:
             val = alpha_beta_find_state_value(NEG_INFINITY, INFINITY, action, environment, max_depth)

@@ -1,21 +1,22 @@
 from constants import PER_TURN, PER_GAME
 from random_agent import RandomAgent
+from ai_algorithm import AIAlgorithm
 
 def assess_agent(m1, random, e, name, hyper_parameters,assess_count,player_metrics):
-    m2 = RandomAgent(random)
+    m2 = AIAlgorithm()
     player1_scores = []
     player1_rewards = []
     player1_wrong_guesses = []
     wins = 0
     losses = 0
     ties = 0
-    if m1.model.tensorboard:
+    if  hasattr(m1.model, 'tensorboard'):
             m1.model.tensorboard.step = assess_count
-    for i in range(hyper_parameters.assess_model_games):
+    for i in range(hyper_ parameters.assess_model_games):
         turn = e.reset()
         done = False
-        total_score = 0
-        total_reward = 0
+        total_score = -10000000000
+        total_reward = -100000000000
         previous_turn = -1
         while not done:
             if turn == 0:
@@ -46,7 +47,8 @@ def assess_agent(m1, random, e, name, hyper_parameters,assess_count,player_metri
     max_score = max(player1_scores)
     avg_reward = sum(player1_rewards) / len(player1_rewards)
     max_reward = max(player1_rewards)
-    m1.model.tensorboard.update_stats(avg_score=avg_score,max_score=max_score,avg_reward=avg_reward, reward_max=max_reward,
+    if hasattr(m1.model, 'tensorboard'):
+        m1.model.tensorboard.update_stats(avg_score=avg_score,max_score=max_score,avg_reward=avg_reward, reward_max=max_reward,
     player_wins = player_metrics.wins,player_losses = player_metrics.losses, player_ties= player_metrics.ties,  illegal_moves =  player_metrics.illegal_moves, total_moves = player_metrics.total_moves)
     result = str("player: {} avg_score: {} max_score:{} avg_reward: {} max_reward:{} ").format(
         name, avg_score, max_score, avg_reward, max_reward)

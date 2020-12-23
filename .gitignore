@@ -127,7 +127,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-logs/
 
 # VSCode
 .vscode/ 
@@ -135,3 +134,8 @@ logs/
 
 # models
 *.h5
+
+#tensorboard
+logs/
+r1/
+r2/

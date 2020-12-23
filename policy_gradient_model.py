@@ -22,7 +22,7 @@ class PolicyGradientModel:
         log_name = "logs/{}-{}-{}".format(name,file_name,int(time.time()))
         print(file_name)
 
-        if not human:
+        if not human and hyper_parameters.tb_log:
             self.tensorboard = ModifiedTensorBoard(name,log_dir=log_name)
         self.optimizer = keras.optimizers.Adam(learning_rate=hyper_parameters.learning_rate)
         self.huber_loss = keras.losses.Huber()
@@ -34,7 +34,7 @@ class PolicyGradientModel:
         self.name = name
         self.legal_moves = 0
         self.illegal_moves = 0
-        if human:  # Add check for weights file exisiting
+        if human or true:  # Add check for weights file exisiting
             print("Loading Weights...")
             try:
                 self.model.load_weights("PG_complete.h5".format(self.name))
@@ -95,11 +95,14 @@ class PolicyGradientModel:
         state = state.to_observable_state(turn)
         state = np.array([state])
         possible_actions_encoded = self.encode_possible_actions(possible_actions)
-        action_probs, critic_value,_ = self.model.predict([state,possible_actions_encoded],callbacks=[self.tensorboard] if final else None)
-        self.critic_value_history.append(critic_value[0, 0])
-
-        # Sample action from action probability distribution
-        return self._convert_action_num(np.argmax(action_probs))
+        if self.hyper_parameters.tb_log:
+            action_probs, critic_value,_ = self.model.predict([state,possible_actions_encoded],callbacks=[self.tensorboard] if final else None)
+            self.critic_value_history.append(critic_value[0, 0])
+            return self._convert_action_num(np.argmax(action_probs))
+        else:
+            action_probs, critic_value,_ = self.model.predict([state,possible_actions_encoded])
+            self.critic_value_history.append(critic_value[0, 0])
+            return self._convert_action_num(np.argmax(action_probs))
 
     def encode_possible_actions(self,possible_actions):
         action_mask = [-10000000000000000000000000000000000]*self.num_actions
@@ -149,6 +152,7 @@ class PolicyGradientModel:
         self.action_probs_history.clear()
         self.critic_value_history.clear()
         if self.train_count % self.hyper_parameters.save_interval == 0:
+            print("model saved")
             self.model.save_weights("PG_weights_{0}.h5".format(self.file_name))
             if self.hyper_parameters.print_model_nn:
                 print("printing layers.")
