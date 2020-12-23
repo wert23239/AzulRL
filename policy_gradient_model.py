@@ -63,7 +63,7 @@ class PolicyGradientModel:
         self.model = keras.Model(inputs=[state_inputs,possible_action_inputs], outputs=[action, critic,last_layer_before_mask])
         self.model.compile()
 
-    def simulated_action(self, state, possible_actions,turn):
+    def simulated_action(self, state, possible_actions,turn,greedy=False):
         state = state.to_observable_state(turn)
         state = np.array([state])
         possible_actions_encoded = self.encode_possible_actions(possible_actions)
@@ -77,14 +77,18 @@ class PolicyGradientModel:
         else:
             self.illegal_moves += 1
         self.critic_value_history.append(critic_value[0, 0])
-        action = self.random_or_override.weighted_random_choice(self.num_actions, np.squeeze(action_probs))
+
+        action = None
+        if greedy:
+            action = self._convert_action_num(np.argmax(action_probs))
+        else:
+            action = self.random_or_override.weighted_random_choice(self.num_actions, np.squeeze(action_probs))
         self.action_probs_history.append(tf.math.log(action_probs[0, action]))
 
         self.action_probs = action_probs
         self.state = state
 
         return self._convert_action_num(action)
-
 
     def no_op_action(self, state, possible_actions, turn):
         state = state.to_observable_state(turn)

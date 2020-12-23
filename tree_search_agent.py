@@ -23,7 +23,7 @@ class TreeSearchAgent:
         for i in range(self.num_simulations):
             e = copy.deepcopy(environment)
             with tf.GradientTape() as tape:
-                action = self.model.simulated_action(environment.state, possible_actions_list, environment.turn)
+                action = self.model.simulated_action(environment.state, possible_actions_list, environment.turn, greedy=i==0)
                 reward = self._find_action_value(action, e)
                 self.model.train(reward, tape)
             score_map[action].append(reward)
