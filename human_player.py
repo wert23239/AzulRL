@@ -12,9 +12,9 @@ class HumanPlayer:
         random = RandomOrOverride()
         hyper_parameters = HyperParameters()
         self.name = name
-        self.tree_search_agent = TreeSearchAgent(random, hyper_parameters, human=True)
+        self.tree_search_agent = TreeSearchAgent(random, hyper_parameters)
 
-    def action(self,  environment, _):
+    def action(self,  environment):
         turn = environment.turn
         state = environment.state
         possible_actions = environment.possible_moves
@@ -61,7 +61,7 @@ class HumanPlayer:
                 random_action_idx = random.randint(0, len(possible_actions))
                 return list(possible_actions)[random_action_idx]
             elif user_action_str == 'b':
-                return self.tree_search_agent.action(environment, False)
+                return self.tree_search_agent.action(environment)
             user_actions = user_action_str.split(",")
             if len(user_actions) == 3:
                 # The following will crash the program if the user's input isn't

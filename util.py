@@ -12,11 +12,11 @@ def assess_agent(m1, random, e, name, hyper_parameters,assess_count,player_metri
     ties = 0
     if  hasattr(m1.model, 'tensorboard'):
             m1.model.tensorboard.step = assess_count
-    for i in range(hyper_ parameters.assess_model_games):
+    for i in range(hyper_parameters.assess_model_games):
         turn = e.reset()
         done = False
-        total_score = -10000000000
-        total_reward = -100000000000
+        total_score = 0
+        total_reward = 0
         previous_turn = -1
         while not done:
             if turn == 0:
@@ -24,17 +24,14 @@ def assess_agent(m1, random, e, name, hyper_parameters,assess_count,player_metri
             else:
                 player = m2
             previous_turn = turn
-            if(previous_turn == 0  and i==hyper_parameters.assess_model_games-1):
-                player.action(e,False,True)
+            if(previous_turn == 0  and i==hyper_parameters.assess_model_games-1 and hasattr(m1.model, 'tensorboard')):
+                player.model.no_op_action(e.state,e.possible_actions,turn)
                 break
-            action = player.action(e, False)
+            action = player.action(e)
             state, turn, _, score_delta, current_scores, done = e.move(action)
-            if previous_turn == 0 or \
-                (done and hyper_parameters.reward_function == PER_GAME) or \
-                (done and turn == 0):
-                total_reward += score_to_reward(hyper_parameters.reward_function, score_delta, current_scores, done)
             if done:
                 total_score += current_scores[0] - current_scores[1]
+                total_reward += score_to_reward(current_scores, done)
         player1_scores.append(total_score)
         player1_rewards.append(total_reward)
         if (total_reward > 0):
@@ -57,20 +54,11 @@ def assess_agent(m1, random, e, name, hyper_parameters,assess_count,player_metri
     print()
     return avg_score
 
-def score_to_reward(reward_function, score_delta, current_scores, done):
-    # TODO: abandon all uses of score_delta
-    # if(reward_function == PER_TURN):
-    #     if score_delta < 0:
-    #         return -1
-    #     if score_delta > 0:
-    #         return 1
-    #     return 0
-    if(reward_function == PER_GAME):
-        if(not done):
-            return 0
-        if(current_scores[0]>current_scores[1]):
-            return 1
-        if(current_scores[0]<current_scores[1]):
-            return -1
+def score_to_reward(current_scores, done):
+    if(not done):
         return 0
-    raise Exception
+    if(current_scores[0]>current_scores[1]):
+        return 1
+    if(current_scores[0]<current_scores[1]):
+        return -1
+    return 0

@@ -11,7 +11,7 @@ from modified_tensorboard import ModifiedTensorBoard
 
 
 class PolicyGradientModel:
-    def __init__(self, random_or_override,hyper_parameters,name="Bilbo",human=False):
+    def __init__(self, random_or_override,hyper_parameters,name="Bilbo"):
         self.gamma = hyper_parameters.gamma  # Discount factor for past rewards
         self.hyper_parameters = hyper_parameters
         self._create_model()
@@ -22,7 +22,7 @@ class PolicyGradientModel:
         log_name = "logs/{}-{}-{}".format(name,file_name,int(time.time()))
         print(file_name)
 
-        if not human and hyper_parameters.tb_log:
+        if hyper_parameters.tb_log:
             self.tensorboard = ModifiedTensorBoard(name,log_dir=log_name)
         self.optimizer = keras.optimizers.Adam(learning_rate=hyper_parameters.learning_rate)
         self.huber_loss = keras.losses.Huber()
@@ -34,7 +34,7 @@ class PolicyGradientModel:
         self.name = name
         self.legal_moves = 0
         self.illegal_moves = 0
-        if human or true:  # Add check for weights file exisiting
+        if hyper_parameters.load:  # Add check for weights file exisiting
             print("Loading Weights...")
             try:
                 self.model.load_weights("PG_complete.h5".format(self.name))
@@ -63,7 +63,7 @@ class PolicyGradientModel:
         self.model = keras.Model(inputs=[state_inputs,possible_action_inputs], outputs=[action, critic,last_layer_before_mask])
         self.model.compile()
 
-    def simulated_action(self, state, possible_actions, turn):
+    def simulated_action(self, state, possible_actions,turn):
         state = state.to_observable_state(turn)
         state = np.array([state])
         possible_actions_encoded = self.encode_possible_actions(possible_actions)
@@ -76,11 +76,6 @@ class PolicyGradientModel:
             self.legal_moves += 1
         else:
             self.illegal_moves += 1
-
-        if self.train_count > 0 and self.train_count % self.hyper_parameters.save_interval == 0 and self.hyper_parameters.print_model_nn:
-            print("before pruning: ", best_guess, " Is it in possible_actions? ", legal_move)
-            print("so far, ", self.legal_moves, " legal moves and ", self.illegal_moves, " illegal moves.")
-
         self.critic_value_history.append(critic_value[0, 0])
         action = self.random_or_override.weighted_random_choice(self.num_actions, np.squeeze(action_probs))
         self.action_probs_history.append(tf.math.log(action_probs[0, action]))
@@ -91,18 +86,12 @@ class PolicyGradientModel:
         return self._convert_action_num(action)
 
 
-    def greedy_action(self, state, possible_actions, turn,final):
+    def no_op_action(self, state, possible_actions, turn):
         state = state.to_observable_state(turn)
         state = np.array([state])
         possible_actions_encoded = self.encode_possible_actions(possible_actions)
-        if self.hyper_parameters.tb_log:
-            action_probs, critic_value,_ = self.model.predict([state,possible_actions_encoded],callbacks=[self.tensorboard] if final else None)
-            self.critic_value_history.append(critic_value[0, 0])
-            return self._convert_action_num(np.argmax(action_probs))
-        else:
-            action_probs, critic_value,_ = self.model.predict([state,possible_actions_encoded])
-            self.critic_value_history.append(critic_value[0, 0])
-            return self._convert_action_num(np.argmax(action_probs))
+        action_probs, critic_value,_ = self.model.predict([state,possible_actions_encoded],callbacks=[self.tensorboard])
+        return self._convert_action_num(np.argmax(action_probs))
 
     def encode_possible_actions(self,possible_actions):
         action_mask = [-10000000000000000000000000000000000]*self.num_actions

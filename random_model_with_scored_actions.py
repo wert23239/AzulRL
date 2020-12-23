@@ -2,7 +2,7 @@ import random_or_override
 
 
 class RandomModelWithScoredActions:
-    def __init__(self, random_or_override,hyper_parameters,name,human=False):
+    def __init__(self, random_or_override,hyper_parameters,name):
         self.random_or_override = random_or_override
 
     def simulated_action(self, state, possible_actions, turn):

@@ -22,8 +22,7 @@ class HyperParameters:
    accuracy_interval: int = 500
    # How many epoch to the model is saved
    save_interval: int = 10000
-   # Which reward function to use
-   reward_function : int = PER_GAME
+   # Which value function to use
    pgr: int  = SCORE 
    # How many simulations of tree search to run
    num_simulations : int = 7
@@ -38,5 +37,7 @@ class HyperParameters:
    # Max depth for Monte Carlo tree-search.
    max_depth: int = 4
    # Log to Tensorboard
-   tb_log: bool = True
+   tb_log: bool = False
+   # Load the model
+   load: bool = True
    

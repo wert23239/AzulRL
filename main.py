@@ -26,7 +26,9 @@ def main(player1_type, player2_type, hyper_parameters):
     is_playing_bot = True
     if(player1_type == "human" or player2_type == "human"):
         is_playing_bot = False
-    bot = TreeSearchAgent(random,hyper_parameters,"Bilbo",not is_playing_bot)
+        hyper_parameters.tb_log = False
+        hyper_parameters.load = True
+    bot = TreeSearchAgent(random,hyper_parameters,"Bilbo")
     if player1_type == "bot":
         m1 = bot
     elif player1_type == "random":
@@ -56,7 +58,7 @@ def main(player1_type, player2_type, hyper_parameters):
                 player = m1
             else:
                 player = m2
-            action = player.action(e, is_playing_bot)
+            action = player.action(e)
             state, turn, _, score_delta, current_scores, done = e.move(action)
             if not is_playing_bot:
                 print("score delta: ", score_delta)
@@ -68,7 +70,7 @@ def main(player1_type, player2_type, hyper_parameters):
                     losses +=1
                 else:
                     ties += 1
-        if number_of_games % hyper_parameters.accuracy_interval == 0:
+        if (number_of_games % hyper_parameters.accuracy_interval == 0) or  (hyper_parmeters.load and number_of_games==1):
             print("win loss ratio: ",wins/(losses+wins+ties))
             print("Epoch: ",number_of_games)
             player_metrics = PlayerMetrics(wins,losses,ties)
@@ -101,8 +103,6 @@ if __name__ == "__main__":
         if len(sys.argv) == 1:
             main("bot", "bot", hyper_parmeters)
         else:
-            if len(sys.argv) >= 4:
-                train = sys.argv[3]
             main(sys.argv[1], sys.argv[2], hyper_parmeters)
     else:
         print("Usage: python main.py player1_type player2_type")
