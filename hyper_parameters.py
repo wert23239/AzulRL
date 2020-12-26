@@ -40,4 +40,6 @@ class HyperParameters:
    tb_log: bool = False
    # Load the model
    load: bool = True
+   # Use upper-confidence bounds for exploration.
+   use_ucb: bool = True
    

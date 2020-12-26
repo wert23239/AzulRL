@@ -63,8 +63,9 @@ class PolicyGradientModel:
         self.model = keras.Model(inputs=[state_inputs,possible_action_inputs], outputs=[action, critic,last_layer_before_mask])
         self.model.compile()
 
-    def simulated_action(self, state, possible_actions,turn,greedy=False):
+    def simulated_action(self, state, possible_actions,turn,state_counts, action_counts,greedy=False,use_ucb=False):
         state = state.to_observable_state(turn)
+        state_string = state.tostring()
         state = np.array([state])
         possible_actions_encoded = self.encode_possible_actions(possible_actions)
         # Predict action probabilities and estimated future rewards
@@ -80,9 +81,14 @@ class PolicyGradientModel:
 
         action = None
         if greedy:
-            action = self._convert_action_num(np.argmax(action_probs))
+            action = np.argmax(action_probs)
+        elif use_ucb:
+            action = self._upper_confidence_bound(state_string, action_probs, set(possible_actions), state_counts, action_counts)
+            state_counts[state_string] += 1
+            action_counts[(state_string, action)] += 1
         else:
             action = self.random_or_override.weighted_random_choice(self.num_actions, np.squeeze(action_probs))
+
         self.action_probs_history.append(tf.math.log(action_probs[0, action]))
 
         self.action_probs = action_probs
@@ -177,6 +183,16 @@ class PolicyGradientModel:
         returns = (returns - np.mean(returns)) / (np.std(returns) + eps)
         returns = returns.tolist()
         return returns
+
+    def _upper_confidence_bound(self, state, action_probs, possible_actions, state_counts, action_counts):
+        best_action = (-1, -np.inf)
+        for a_tuple, p in np.ndenumerate(action_probs):
+            a = a_tuple[1]
+            if self._convert_action_num(a) in possible_actions:
+                action_score = p * np.sqrt(state_counts[state]) / (1.0 + action_counts[(state, a)])
+                if action_score > best_action[1]:
+                    best_action = (a, action_score)
+        return best_action[0]
 
     def encode_action(self, action):
         action_num = action.circle * 30
