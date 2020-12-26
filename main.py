@@ -3,6 +3,7 @@ import numpy as np
 
 from ai_algorithm import AIAlgorithm
 from environment import Environment
+from example import Example
 from human_player import HumanPlayer
 from hyper_parameters import HyperParameters
 from random_agent import RandomAgent
@@ -59,11 +60,17 @@ def main(player1_type, player2_type, hyper_parameters):
             else:
                 player = m2
             action = player.action(e)
+            if type(player) == TreeSearchAgent:
+                example = Example(action,e.possible_moves,e.state.to_observable_state(turn))
+                player.save(example)
             state, turn, _, score_delta, current_scores, done = e.move(action)
             if not is_playing_bot:
                 print("score delta: ", score_delta)
                 print("current scores: ", current_scores) 
             if(done):
+                if type(player) == TreeSearchAgent:
+                    player.train()
+
                 if(current_scores[0]>current_scores[1]):
                     wins += 1
                 elif(current_scores[1]<current_scores[0]):

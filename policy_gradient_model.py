@@ -24,10 +24,6 @@ class PolicyGradientModel:
 
         if hyper_parameters.tb_log:
             self.tensorboard = ModifiedTensorBoard(name,log_dir=log_name)
-        self.optimizer = keras.optimizers.Adam(learning_rate=hyper_parameters.learning_rate)
-        self.huber_loss = keras.losses.Huber()
-        self.action_probs_history = []
-        self.critic_value_history = []
         self.episode_count = 0
         self.train_count = 0
         self.random_or_override = random_or_override
@@ -58,109 +54,53 @@ class PolicyGradientModel:
         possible_action_inputs = layers.Input(shape=(self.num_actions,))
         possible_action_masked = layers.Add()([last_layer_before_mask, possible_action_inputs])
         action = layers.Activation(activation="softmax")(possible_action_masked)
-        critic = layers.Dense(1)(last_layer_before_mask)
+        self.model = keras.Model(inputs=[state_inputs,possible_action_inputs], outputs=action)
+        self.model.compile(optimizer="Adam", loss="categorical_crossentropy")
 
-        self.model = keras.Model(inputs=[state_inputs,possible_action_inputs], outputs=[action, critic,last_layer_before_mask])
-        self.model.compile()
-
-    def simulated_action(self, state, possible_actions,turn,state_counts, action_counts,greedy=False,use_ucb=False):
+    def simulated_action(self, state, possible_actions,turn,state_counts, action_counts):
         state = state.to_observable_state(turn)
         state_string = state.tostring()
         state = np.array([state])
-        possible_actions_encoded = self.encode_possible_actions(possible_actions)
+        possible_actions_encoded = self.encode_possible_actions(possible_actions,True)
         # Predict action probabilities and estimated future rewards
         # from environment state
-        action_probs, critic_value, action_scores_before_pruning = self.model([state,possible_actions_encoded])
-        best_guess = np.argmax(action_scores_before_pruning)
-        legal_move = self._convert_action_num(best_guess) in set(possible_actions)
-        if (legal_move):
-            self.legal_moves += 1
-        else:
-            self.illegal_moves += 1
-        self.critic_value_history.append(critic_value[0, 0])
+        action_probs = self.model.predict([state,possible_actions_encoded])
+        self.legal_moves += 1
 
         action = None
-        if greedy:
-            action = np.argmax(action_probs)
-        elif use_ucb:
+        if self.hyper_parameters.use_ucb:
             action = self._upper_confidence_bound(state_string, action_probs, set(possible_actions), state_counts, action_counts)
             state_counts[state_string] += 1
             action_counts[(state_string, action)] += 1
         else:
             action = self.random_or_override.weighted_random_choice(self.num_actions, np.squeeze(action_probs))
 
-        self.action_probs_history.append(tf.math.log(action_probs[0, action]))
-
-        self.action_probs = action_probs
-        self.state = state
-
         return self._convert_action_num(action)
+    
+    def train(self,examples):
+        states = np.array([example.state for example in examples])
+        possible_actions = [self.encode_possible_actions(example.possible_actions,False) for example in examples]
+        possible_actions_tensor = tf.convert_to_tensor(np.array(possible_actions),dtype=tf.float32)
+        actions = [self.encode_action(example.action) for example in examples]
+        one_hot_encoded_actions = tf.keras.utils.to_categorical(actions, num_classes=self.num_actions)
+        self.model.fit([states,possible_actions_tensor],one_hot_encoded_actions,verbose = 0)
+
 
     def no_op_action(self, state, possible_actions, turn):
         state = state.to_observable_state(turn)
         state = np.array([state])
-        possible_actions_encoded = self.encode_possible_actions(possible_actions)
-        action_probs, critic_value,_ = self.model.predict([state,possible_actions_encoded],callbacks=[self.tensorboard])
+        possible_actions_encoded = self.encode_possible_actions(possible_actions,True)
+        action_probs = self.model.predict([state,possible_actions_encoded],callbacks=[self.tensorboard])
         return self._convert_action_num(np.argmax(action_probs))
 
-    def encode_possible_actions(self,possible_actions):
+    def encode_possible_actions(self,possible_actions,to_tensor):
         action_mask = [-10000000000000000000000000000000000]*self.num_actions
         for action in possible_actions:
           action_num = self.encode_action(action)
           action_mask[action_num] = 0.0
-
-        return  tf.convert_to_tensor(np.array([action_mask]),dtype=tf.float32)
-    
-
-
-    def train(self, reward, tape):
-        self.train_count += 1
-        # Calculate expected value from rewards
-        # - At each timestep what was the total reward received after that timestep
-        # - Rewards in the past are discounted by multiplying them with gamma
-        # - These are the labels for our critic
-        returns = self._calculate_returns(reward, len(self.action_probs_history))
-
-        # Calculating loss values to update our network
-        history = zip(self.action_probs_history, self.critic_value_history, returns)
-        actor_losses = []
-        critic_losses = []
-        for log_prob, value, ret in history:
-            # At this point in history, the critic estimated that we would get a
-            # total reward = `value` in the future. We took an action with log probability
-            # of `log_prob` and ended up recieving a total reward = `ret`.
-            # The actor must be updated so that it predicts an action that leads to
-            # high rewards (compared to critic's estimate) with high probability.
-            diff = ret*self.hyper_parameters.alpha
-            actor_losses.append(-log_prob * diff)  # actor loss
-
-            # The critic must be updated so that it predicts a better estimate of
-            # the future rewards.
-            critic_losses.append(
-                self.huber_loss(tf.expand_dims(value, 0), tf.expand_dims(ret, 0))
-            )
-
-        # Backpropagation
-        loss_value = sum(actor_losses) + sum(critic_losses)
-        grads = tape.gradient(loss_value, self.model.trainable_variables)
-        self.optimizer.apply_gradients((grad, var)
-            for (grad, var) in zip(grads, self.model.trainable_variables) if grad is not None)
-        # self.optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
-
-        # Clear the loss and reward history
-        self.action_probs_history.clear()
-        self.critic_value_history.clear()
-        if self.train_count % self.hyper_parameters.save_interval == 0:
-            print("model saved")
-            self.model.save_weights("PG_weights_{0}.h5".format(self.file_name))
-            if self.hyper_parameters.print_model_nn:
-                print("printing layers.")
-                for layer in self.model.layers:
-                    print("layer: ")
-                    print(layer.get_config())
-                    print(layer.get_weights()) # list of numpy arrays
-                print("action_probs", self.action_probs)
-                print("state", self.state)
+        if to_tensor:
+            return tf.convert_to_tensor(np.array([action_mask]),dtype=tf.float32)
+        return action_mask
 
     def _calculate_returns(self, reward, size):
         returns = []

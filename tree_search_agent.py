@@ -16,7 +16,7 @@ class TreeSearchAgent:
         self.r = random
         self.model = PolicyGradientModel(random,hyper_parameters,name)
         self.mc_max_depth = hyper_parameters.max_depth
-        self.use_ucb = hyper_parameters.use_ucb
+        self.pg_examples = []
 
     def action(self, environment):
         possible_actions_list = list(environment.possible_moves)
@@ -25,10 +25,8 @@ class TreeSearchAgent:
         action_counts = defaultdict(int)
         for i in range(self.num_simulations):
             e = copy.deepcopy(environment)
-            with tf.GradientTape() as tape:
-                action = self.model.simulated_action(environment.state, possible_actions_list, environment.turn, state_counts, action_counts, use_ucb=self.use_ucb)
-                reward = self._find_action_value(action, e, state_counts, action_counts)
-                self.model.train(reward, tape)
+            action = self.model.simulated_action(environment.state, possible_actions_list, environment.turn, state_counts, action_counts)
+            reward = self._find_action_value(action, e, state_counts, action_counts)
             score_map[action].append(reward)
         average_scores = {action_score: mean(score_map[action_score]) for action_score in score_map}
         return max(average_scores.items(), key=operator.itemgetter(1))[0]
@@ -40,7 +38,16 @@ class TreeSearchAgent:
         depth = 0
         while not done and depth < self.mc_max_depth:
             possible_actions_list = list(possible_actions)
-            a = self.model.simulated_action(state, possible_actions_list, temp_turn, state_counts, action_counts, use_ucb=self.use_ucb)
+            a = self.model.simulated_action(state, possible_actions_list, temp_turn, state_counts, action_counts)
             state, temp_turn, possible_actions, _, total_rewards, done = environment.move(a)
             depth += 1
         return total_rewards[turn] - total_rewards[(turn + 1) % 2]
+    
+    def save(self,example):
+        self.pg_examples.append(example)
+
+    def train(self):
+        self.model.train(self.pg_examples)
+        self.pg_examples.clear()
+
+
