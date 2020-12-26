@@ -21,24 +21,23 @@ class TreeSearchAgent:
     def action(self, environment):
         possible_actions_list = list(environment.possible_moves)
         score_map = defaultdict(list)  # map from action to list of rewards when that action is done
-        state_counts = defaultdict(int)
-        action_counts = defaultdict(int)
+        self.model._reset_state_and_action_counts()
         for i in range(self.num_simulations):
             e = copy.deepcopy(environment)
-            action = self.model.simulated_action(environment.state, possible_actions_list, environment.turn, state_counts, action_counts)
-            reward = self._find_action_value(action, e, state_counts, action_counts)
+            action = self.model.simulated_action(environment.state, possible_actions_list, environment.turn)
+            reward = self._find_action_value(action, e)
             score_map[action].append(reward)
         average_scores = {action_score: mean(score_map[action_score]) for action_score in score_map}
         return max(average_scores.items(), key=operator.itemgetter(1))[0]
 
 
-    def _find_action_value(self,action, environment, state_counts, action_counts):
+    def _find_action_value(self,action, environment):
         turn = environment.turn
         state, temp_turn, possible_actions, _, total_rewards, done = environment.move(action)
         depth = 0
         while not done and depth < self.mc_max_depth:
             possible_actions_list = list(possible_actions)
-            a = self.model.simulated_action(state, possible_actions_list, temp_turn, state_counts, action_counts)
+            a = self.model.simulated_action(state, possible_actions_list, temp_turn)
             state, temp_turn, possible_actions, _, total_rewards, done = environment.move(a)
             depth += 1
         return total_rewards[turn] - total_rewards[(turn + 1) % 2]

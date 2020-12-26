@@ -30,12 +30,17 @@ class PolicyGradientModel:
         self.name = name
         self.legal_moves = 0
         self.illegal_moves = 0
+        self._reset_state_and_action_counts()
         if hyper_parameters.load:  # Add check for weights file exisiting
             print("Loading Weights...")
             try:
                 self.model.load_weights("PG_complete.h5".format(self.name))
             except:
                 print("No Model :(")
+
+    def _reset_state_and_action_counts(self):
+        self.state_counts = defaultdict(int)
+        self.action_counts = defaultdict(int)
     
     def _create_model(self):
         num_inputs = 1240
@@ -57,7 +62,7 @@ class PolicyGradientModel:
         self.model = keras.Model(inputs=[state_inputs,possible_action_inputs], outputs=action)
         self.model.compile(optimizer="Adam", loss="categorical_crossentropy")
 
-    def simulated_action(self, state, possible_actions,turn,state_counts, action_counts):
+    def simulated_action(self, state, possible_actions, turn):
         state = state.to_observable_state(turn)
         state_string = state.tostring()
         state = np.array([state])
@@ -69,9 +74,9 @@ class PolicyGradientModel:
 
         action = None
         if self.hyper_parameters.use_ucb:
-            action = self._upper_confidence_bound(state_string, action_probs, set(possible_actions), state_counts, action_counts)
-            state_counts[state_string] += 1
-            action_counts[(state_string, action)] += 1
+            action = self._upper_confidence_bound(state_string, action_probs, set(possible_actions))
+            self.state_counts[state_string] += 1
+            self.action_counts[(state_string, action)] += 1
         else:
             action = self.random_or_override.weighted_random_choice(self.num_actions, np.squeeze(action_probs))
 
@@ -124,12 +129,12 @@ class PolicyGradientModel:
         returns = returns.tolist()
         return returns
 
-    def _upper_confidence_bound(self, state, action_probs, possible_actions, state_counts, action_counts):
+    def _upper_confidence_bound(self, state, action_probs, possible_actions):
         best_action = (-1, -np.inf)
         for a_tuple, p in np.ndenumerate(action_probs):
             a = a_tuple[1]
             if self._convert_action_num(a) in possible_actions:
-                action_score = p * np.sqrt(state_counts[state]) / (1.0 + action_counts[(state, a)])
+                action_score = p * np.sqrt(self.state_counts[state]) / (1.0 + self.action_counts[(state, a)])
                 if action_score > best_action[1]:
                     best_action = (a, action_score)
         return best_action[0]
