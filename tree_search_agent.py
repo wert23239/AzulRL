@@ -18,15 +18,17 @@ class TreeSearchAgent:
         self.model = PolicyGradientModel(random,hyper_parameters,name)
         self.mc_max_depth = hyper_parameters.max_depth
         self.pg_examples = []
+        self.visited = set()
 
     def action(self, environment):
         possible_actions_list = list(environment.possible_moves)
         score_map = defaultdict(list)  # map from action to list of rewards when that action is done
-        self.model._reset_state_and_action_counts()
-        for i in range(self.hyper_parameters.num_simulations):
+        for i in range(self.num_simulations):
             e = copy.deepcopy(environment)
             action = self.model.simulated_action(environment.state, possible_actions_list, environment.turn)
-            reward = self._find_action_value(action, e)
+            state_actions, reward = self._find_action_value(action, e)
+            for s, a in state_actions:
+                self.model.record_action_reward(environment.state, action, reward)
             score_map[action].append(reward)
         average_scores = {action_score: mean(score_map[action_score]) for action_score in score_map}
         return max(average_scores.items(), key=operator.itemgetter(1))[0]
@@ -34,15 +36,20 @@ class TreeSearchAgent:
 
     def _find_action_value(self,action, environment):
         turn = environment.turn
+        state_actions = [(environment.state.to_observable_state(turn).tostring(), action)]
         state, temp_turn, possible_actions, _, total_rewards, done = environment.move(action)
-        depth = 0
-        while not done and depth < self.mc_max_depth:
+        while not done:
+            hashable_state = state.to_observable_state(temp_turn).tostring()
+            if hashable_state not in self.visited:
+                self.visited.add(hashable_state)
+                value = self.calculate_value(total_rewards[turn] - total_rewards[(turn + 1) % 2])
+                return state_actions, value
             possible_actions_list = list(possible_actions)
             a = self.model.simulated_action(state, possible_actions_list, temp_turn)
+            state_actions.append((hashable_state, a))
             state, temp_turn, possible_actions, _, total_rewards, done = environment.move(a)
-            depth += 1
         value = self.calculate_value(total_rewards[turn] - total_rewards[(turn + 1) % 2])
-        return value
+        return state_actions, value
 
     def calculate_value(self, reward):
         returns = []

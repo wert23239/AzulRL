@@ -42,6 +42,7 @@ class PolicyGradientModel:
     def _reset_state_and_action_counts(self):
         self.state_counts = defaultdict(int)
         self.action_counts = defaultdict(int)
+        self.action_totals = defaultdict(int)
     
     def _create_model(self):
         num_inputs = 1240
@@ -82,6 +83,9 @@ class PolicyGradientModel:
             action = self.random_or_override.weighted_random_choice(self.num_actions, np.squeeze(action_probs))
 
         return self._convert_action_num(action)
+
+    def record_action_reward(self, state, action, score):
+        self.action_totals[(state, action)] += score
     
     def train(self,examples):
         states = np.array([example.state for example in examples])
@@ -113,7 +117,10 @@ class PolicyGradientModel:
         for a_tuple, p in np.ndenumerate(action_probs):
             a = a_tuple[1]
             if self._convert_action_num(a) in possible_actions:
-                action_score = p * np.sqrt(self.state_counts[state]) / (1.0 + self.action_counts[(state, a)])
+                q = 0
+                if self.action_counts[(state, a)] != 0:
+                    q = self.action_totals[(state, a)] / self.action_counts[(state, a)]
+                action_score = q + p * np.sqrt(self.state_counts[state]) / (1.0 + self.action_counts[(state, a)])
                 if action_score > best_action[1]:
                     best_action = (a, action_score)
         return best_action[0]
