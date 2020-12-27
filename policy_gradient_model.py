@@ -84,8 +84,9 @@ class PolicyGradientModel:
 
         return self._convert_action_num(action)
 
-    def record_action_reward(self, state, action, score):
-        self.action_totals[(state, action)] += score
+    def record_action_reward(self, state, action, turn, score):
+        # The key is a pair of encoded state and encoded action.
+        self.action_totals[(state.to_hashable_state(turn), self.encode_action(action))] += score
     
     def train(self,examples):
         states = np.array([example.state for example in examples])

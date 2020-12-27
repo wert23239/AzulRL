@@ -111,3 +111,6 @@ class EnvironmentState:
         observable_state += \
             floors_list + [self.get_mirrored_one_piece(turn)] + circles_list + center_list
         return np.unpackbits(np.array(observable_state, dtype=np.uint8))
+
+    def to_hashable_state(self, turn):
+        return self.to_observable_state(turn).tostring()
