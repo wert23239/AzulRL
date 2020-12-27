@@ -24,9 +24,9 @@ class TreeSearchAgent:
         for i in range(self.hyper_parameters.num_simulations):
             e = copy.deepcopy(environment)
             action = self.model.simulated_action(e.state, possible_actions_list, e.turn)
-            state_action_turns, total_rewards = self._find_action_value(action, e)
+            state_action_turns, total_rewards, done = self._find_action_value(action, e)
             for s, a, t in state_action_turns:
-                value = self.calculate_value(total_rewards[t] - total_rewards[(t + 1) % 2])
+                value = self.calculate_value(total_rewards[t] - total_rewards[(t + 1) % 2], done)
                 self.model.record_action_reward(s, a, value)
         return self.model.real_action(environment.state,possible_actions_list,environment.turn)
 
@@ -38,15 +38,15 @@ class TreeSearchAgent:
             hashable_state = state.to_hashable_state(turn)
             if hashable_state not in self.visited:
                 self.visited.add(hashable_state)
-                return state_action_turns, total_rewards
+                return state_action_turns, total_rewards, False
             possible_actions_list = list(possible_actions)
             a = self.model.simulated_action(state, possible_actions_list, turn)
             state_action_turns.append((state.to_hashable_state(turn), a, turn))
             state, turn, possible_actions, _, total_rewards, done = environment.move(a)
-        return state_action_turns, total_rewards
+        return state_action_turns, total_rewards, True
 
-    def calculate_value(self, reward):
-        if(self.hyper_parameters.pgr == WIN_LOSS):
+    def calculate_value(self, reward, done):
+        if(done or self.hyper_parameters.pgr == WIN_LOSS):
             if reward > 0:
                 reward = 1
             elif reward < 0:
@@ -55,7 +55,7 @@ class TreeSearchAgent:
         else:
             reward=min(reward,20)
             reward=max(-20,reward)
-            reward=float(reward/20)
+            reward=float(reward/20.0)
             return reward
 
     def train_and_clear(self):
