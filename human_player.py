@@ -16,8 +16,6 @@ class HumanPlayer:
         self.tree_search_agent = TreeSearchAgent(random, hyper_parameters)
 
     def action(self,  environment):
-        turn = environment.turn
-        state = environment.state
         possible_actions = environment.possible_moves
         mosaic_template = [[1, 2, 3, 4, 5],
                        [5, 1, 2, 3, 4],
@@ -25,7 +23,7 @@ class HumanPlayer:
                        [3, 4, 5, 1, 2],
                        [2, 3, 4, 5, 1]]
         print("name: ", self.name)
-        human_print(environment.turn, environment.state, environment.possible_moves)
+        human_print(environment.turn, environment.state)
         user_action_str = input(
             "And refer to the floor of your board as row 5:\n\n")
         while True:

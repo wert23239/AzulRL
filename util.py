@@ -2,7 +2,7 @@ from constants import PER_TURN, PER_GAME
 from random_agent import RandomAgent
 from ai_algorithm import AIAlgorithm
 
-def human_print(turn,state,possible_moves):
+def human_print(turn,state):
     mosaic_template = [[1, 2, 3, 4, 5],
                     [5, 1, 2, 3, 4],
                     [4, 5, 1, 2, 3],

@@ -12,10 +12,10 @@ from tensorflow import keras
 from tensorflow.keras import layers
 
 class TreeSearchAgent:
-    def __init__(self, random, hyper_parameters,name="Bilbo"):
+    def __init__(self, random, hyper_parameters, settings, name="Bilbo"):
         self.hyper_parameters = hyper_parameters
         self.r = random
-        self.model = PolicyGradientModel(random,hyper_parameters,name)
+        self.model = PolicyGradientModel(random, hyper_parameters, settings, name)
         self.mc_max_depth = hyper_parameters.max_depth
         self.visited = set()
 

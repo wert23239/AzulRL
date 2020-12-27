@@ -1,5 +1,5 @@
 import sys
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from constants import PER_GAME, PER_TURN, WIN_LOSS, SCORE
 
@@ -16,10 +16,8 @@ class HyperParameters:
    alpha: float = 1e-7
    # Discount factor
    gamma: float = .968
-   # Print the model internals.
-   print_model_nn: bool = False
    # How many epoch to evaluate
-   accuracy_interval: int = 50
+   accuracy_interval: int = 10
    # How many epoch to the model is saved
    save_interval: int = 10000
    # Which value function to use
@@ -36,10 +34,3 @@ class HyperParameters:
    hl_size: int = 235
    # Max depth for Monte Carlo tree-search.
    max_depth: int = 3
-   # Log to Tensorboard
-   tb_log: bool = True
-   # Load the model
-   load: bool = False
-   # Use upper-confidence bounds for exploration.
-   use_ucb: bool = True
-   

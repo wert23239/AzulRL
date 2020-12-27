@@ -18,7 +18,7 @@ def call_azul(learning_rate,alpha,gamma,policy_gradient_reward,num_simulations,e
         seed_param = int(ers)
     max_games =int(3500/int(round_limit))
     hyper_parameters = HyperParameters(max_games=max_games,assess_model_games=20,learning_rate=round(learning_rate,3),
-    alpha=alpha_param,gamma=round(gamma,3), print_model_nn=False,accuracy_interval=100,save_interval=1000,
+    alpha=alpha_param,gamma=round(gamma,3),accuracy_interval=100,save_interval=1000,
     reward_function=PER_GAME,pgr=policy_gradient_reward_param,num_simulations=int(num_simulations),
     ers=seed_param,round_limit=int(round_limit),num_hl=int(num_hl),
     hl_size=int(hl_size),max_depth=int(max_depth))

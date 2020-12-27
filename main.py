@@ -6,6 +6,7 @@ from ai_algorithm import AIAlgorithm
 from environment import Environment
 from human_player import HumanPlayer
 from hyper_parameters import HyperParameters
+from settings import Settings
 from random_agent import RandomAgent
 from random_or_override import RandomOrOverride
 from tree_search_agent import TreeSearchAgent
@@ -21,14 +22,14 @@ Train bots is a boolean that will cause the agent to train when it's set to
 True and the 'bot' option is used.
 """
 
-def main(player1_type, player2_type, hyper_parameters):
+def main(player1_type, player2_type, hyper_parameters, settings):
     random = RandomOrOverride()
     total_wins_against_ai=0
     is_playing_bot = True
     if(player1_type == "human" or player2_type == "human"):
         is_playing_bot = False
-        hyper_parameters.tb_log = False
-        hyper_parameters.load = True
+        settings.tb_log = False
+        settings.load = True
     bot = TreeSearchAgent(random,hyper_parameters,"Bilbo")
     if player1_type == "bot":
         m1 = bot
@@ -107,6 +108,7 @@ def main(player1_type, player2_type, hyper_parameters):
 
 if __name__ == "__main__":
     hyper_parmeters = HyperParameters()
+    settings = Settings()
     player_types = ["random", "bot", "human", "ai"]
     valid_args = (
         len(sys.argv) >= 3
@@ -115,9 +117,9 @@ if __name__ == "__main__":
     ) or len(sys.argv) == 1
     if valid_args:
         if len(sys.argv) == 1:
-            main("bot", "bot", hyper_parmeters)
+            main("bot", "bot", hyper_parmeters, settings)
         else:
-            main(sys.argv[1], sys.argv[2], hyper_parmeters)
+            main(sys.argv[1], sys.argv[2], hyper_parmeters, settings)
     else:
         print("Usage: python main.py player1_type player2_type")
         print("Acceptable types include 'random', 'bot', 'human', and 'ai'.")

@@ -15,7 +15,7 @@ from modified_tensorboard import ModifiedTensorBoard
 
 
 class PolicyGradientModel:
-    def __init__(self, random_or_override,hyper_parameters,name="Bilbo"):
+    def __init__(self, random_or_override,hyper_parameters,settings,name="Bilbo"):
         self.gamma = hyper_parameters.gamma  # Discount factor for past rewards
         self.hyper_parameters = hyper_parameters
         self._create_model()
@@ -26,8 +26,9 @@ class PolicyGradientModel:
         log_name = "logs/{}-{}-{}".format(name,file_name,int(time.time()))
         print(file_name)
 
-        if hyper_parameters.tb_log:
+        if settings.tb_log:
             self.tensorboard = ModifiedTensorBoard(name,log_dir=log_name)
+        self.use_ucb = settings.use_ucb
         self.episode_count = 0
         self.train_count = 0
         self.random_or_override = random_or_override
@@ -36,7 +37,7 @@ class PolicyGradientModel:
         self.illegal_moves = 0
         self._reset_state_and_action_counts()
         self.examples = []
-        if hyper_parameters.load:  # Add check for weights file exisiting
+        if settings.load:  # Add check for weights file exisiting
             print("Loading Weights...")
             try:
                 self.model.load_weights("PG_complete.h5".format(self.name))
@@ -79,7 +80,7 @@ class PolicyGradientModel:
         self.legal_moves += 1
 
         action = None
-        if self.hyper_parameters.use_ucb:
+        if self.use_ucb:
             action = self._upper_confidence_bound(state_string, action_probs, set(possible_actions))
             self.state_counts[state_string] += 1
             self.action_counts[(state_string, action)] += 1
