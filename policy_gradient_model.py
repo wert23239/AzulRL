@@ -108,28 +108,6 @@ class PolicyGradientModel:
             return tf.convert_to_tensor(np.array([action_mask]),dtype=tf.float32)
         return action_mask
 
-    def _calculate_returns(self, reward, size):
-        returns = []
-        if(self.hyper_parameters.pgr == WIN_LOSS):
-            if reward > 0:
-                reward = 1
-            elif reward < 0:
-                reward = -1
-        rewards_history = [0] * (size - 1) + [reward]
-
-        # Smallest number such that 1.0 + eps != 1.0
-        eps = np.finfo(np.float32).eps.item()
-        discounted_sum = 0
-        for r in rewards_history[::-1]:
-            discounted_sum = r + self.gamma * discounted_sum
-            returns.insert(0, discounted_sum)
-
-        # Normalize
-        returns = np.array(returns)
-        returns = (returns - np.mean(returns)) / (np.std(returns) + eps)
-        returns = returns.tolist()
-        return returns
-
     def _upper_confidence_bound(self, state, action_probs, possible_actions):
         best_action = (-1, -np.inf)
         for a_tuple, p in np.ndenumerate(action_probs):
