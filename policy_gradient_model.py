@@ -113,6 +113,7 @@ class PolicyGradientModel:
         self.model.fit([states,possible_actions_tensor],policy_vector,verbose = 0)
         self.examples.clear()
         self._reset_state_and_action_counts()
+        self.model.save_weights(self.file_name)
 
 
 

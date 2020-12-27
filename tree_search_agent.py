@@ -32,18 +32,17 @@ class TreeSearchAgent:
 
 
     def _find_action_value(self,action, environment):
-        turn = environment.turn
-        state_action_turns = [(environment.state.to_hashable_state(turn), action, turn)]
-        state, temp_turn, possible_actions, _, total_rewards, done = environment.move(action)
+        state_action_turns = [(environment.state.to_hashable_state(environment.turn), action, environment.turn)]
+        state, turn, possible_actions, _, total_rewards, done = environment.move(action)
         while not done:
-            hashable_state = state.to_hashable_state(temp_turn)
+            hashable_state = state.to_hashable_state(turn)
             if hashable_state not in self.visited:
                 self.visited.add(hashable_state)
                 return state_action_turns, total_rewards
             possible_actions_list = list(possible_actions)
-            a = self.model.simulated_action(state, possible_actions_list, temp_turn)
-            state_action_turns.append((state.to_hashable_state(temp_turn), a, temp_turn))
-            state, temp_turn, possible_actions, _, total_rewards, done = environment.move(a)
+            a = self.model.simulated_action(state, possible_actions_list, turn)
+            state_action_turns.append((state.to_hashable_state(turn), a, turn))
+            state, turn, possible_actions, _, total_rewards, done = environment.move(a)
         return state_action_turns, total_rewards
 
     def calculate_value(self, reward):
