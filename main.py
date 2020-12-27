@@ -17,7 +17,7 @@ from collections import defaultdict
 
 """
 Usage: python main.py player1_type player2_type <train_bots>
-Acceptable types include 'random', 'bot', and 'human'.
+Acceptable types include 'random', 'bot', 'ai', and 'human'.
 Train bots is a boolean that will cause the agent to train when it's set to
 True and the 'bot' option is used.
 """
@@ -30,7 +30,7 @@ def main(player1_type, player2_type, hyper_parameters, settings):
         is_playing_bot = False
         settings.tb_log = False
         settings.load = True
-    bot = TreeSearchAgent(random,hyper_parameters,"Bilbo")
+    bot = TreeSearchAgent(random,hyper_parameters,settings,"Bilbo")
     if player1_type == "bot":
         m1 = bot
     elif player1_type == "random":
