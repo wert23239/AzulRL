@@ -5,6 +5,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
+from util import human_print
 
 from action import Action
 from constants import (NUMBER_OF_CIRCLES, NUMBER_OF_COLORS, NUMBER_OF_ROWS,
@@ -87,9 +88,9 @@ class PolicyGradientModel:
 
         return self._convert_action_num(action)
 
-    def record_action_reward(self, state, action, turn, score):
+    def record_action_reward(self, state, action, score):
         # The key is a pair of encoded state and encoded action.
-        self.action_totals[(state.to_hashable_state(turn), self.encode_action(action))] += score
+        self.action_totals[(state, self.encode_action(action))] += score
     
     def real_action(self,state,possible_actions,turn):
         state = state.to_observable_state(turn)
@@ -103,13 +104,14 @@ class PolicyGradientModel:
         self.examples.append(example)
         return self._convert_action_num(action_choosen)
     
-    def train(self):
+    def train_and_clear(self):
         states = np.array([example.state for example in self.examples])
         possible_actions = [self.encode_possible_actions(example.possible_actions,False) for example in self.examples]
         possible_actions_tensor = tf.convert_to_tensor(np.array(possible_actions),dtype=tf.float32)
         policy_vector = np.array([example.policy_vector for example in self.examples])
         self.model.fit([states,possible_actions_tensor],policy_vector,verbose = 0)
         self.examples.clear()
+        self._reset_state_and_action_counts()
 
 
 

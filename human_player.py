@@ -5,6 +5,7 @@ from action import Action
 from random_or_override import RandomOrOverride
 from hyper_parameters import HyperParameters
 from tree_search_agent import TreeSearchAgent
+from util import human_print
 
 
 class HumanPlayer:
@@ -24,36 +25,7 @@ class HumanPlayer:
                        [3, 4, 5, 1, 2],
                        [2, 3, 4, 5, 1]]
         print("name: ", self.name)
-        print("------ Your Mosaic (Left) ----- Mosaic Template (Right): -----")
-        for i, row in enumerate(state.mosaics[turn]):
-            print(i, row, "\t\t\t", mosaic_template[i])
-        print("----------------------- Your Triangle: -----------------------")
-        for i, row in enumerate(state.triangles[turn]):
-            print(i, row)
-        print("------------------------ Your Floor: -------------------------")
-        print(state.floors[turn])
-        print()
-        print()
-        print("---- Opponent's Mosaic (Left) --- Mosaic Template (Right): ---")
-        for i, row in enumerate(state.mosaics[(turn + 1) % 2]):
-            print(i, row, "\t\t\t", mosaic_template[i])
-        print("-------------------- Opponent's Triangle: --------------------")
-        for i, row in enumerate(state.triangles[(turn + 1) % 2]):
-            print(i, row)
-        print("---------------------- Opponent's Floor: ---------------------")
-        print(state.floors[(turn + 1) % 2])
-        print()
-        print()
-        print("-------------------------- Circles: --------------------------")
-        for i, circle in enumerate(state.circles):
-            print(i, sorted(circle))
-        print("-------------------------- Center: ---------------------------")
-        print(sorted(state.center))
-        print("\nWhich circle would you like to pull from,")
-        print("Which color would you like to pull from it,")
-        print("And on which line of your triangle will you  place the tiles?")
-        print("Format answer as '<circle>,<color>,<row>'.")
-        print("Refer to the center as circle 5,")
+        human_print(environment.turn, environment.state, environment.possible_moves)
         user_action_str = input(
             "And refer to the floor of your board as row 5:\n\n")
         while True:

@@ -1,3 +1,4 @@
+import copy
 import sys
 import numpy as np
 
@@ -71,25 +72,36 @@ def main(player1_type, player2_type, hyper_parameters):
                 else:
                     ties += 1
         if (number_of_games % hyper_parameters.accuracy_interval == 0):
+            print()
             print("win loss ratio: ",wins/(losses+wins+ties))
             print("Epoch: ",number_of_games)
-            player_metrics = PlayerMetrics(wins,losses,ties)
             if type(m1) == TreeSearchAgent:
-                player.train()
                 legal_ratio = m1.model.legal_moves/(m1.model.legal_moves+m1.model.illegal_moves)
                 total_moves = m1.model.legal_moves+m1.model.illegal_moves
                 print("for Epoch, legal:illegal moves ratio: ", m1.model.legal_moves/(m1.model.legal_moves+m1.model.illegal_moves))
                 print("for Epoch, total moves: ", m1.model.legal_moves+m1.model.illegal_moves)
                 player_metrics = PlayerMetrics(wins,losses,ties,legal_ratio,total_moves)
                 m1.model.legal_moves = 0
-                m1.model.illegal_moves = 0            
-            assess_count +=1
-            avg_score=assess_agent(m1, random, e, "player 1",hyper_parameters,assess_count,player_metrics)
-            total_avg_score += avg_score
+                m1.model.illegal_moves = 0
+                m1.model.model.save_weights("tmp.h5")
+                m1_shadow = m1
+                m1_shadow.train_and_clear()
+                m1.model.model.load_weights("tmp.h5")
+                assess_count +=1
+                win_loss_ratio=assess_agent(m1_shadow, m1, e, hyper_parameters, assess_count, player_metrics)
+                if (win_loss_ratio >= .50):
+                    m1 = m1_shadow
+                    print("model got better")
+                else:
+                    print("model got worse")
+                win_loss_ratio_against_ai=assess_agent(m1, AIAlgorithm(), e, hyper_parameters, assess_count, player_metrics)
+                print("win loss ratio against ai", win_loss_ratio_against_ai)
+                win_loss_ratio_against_random=assess_agent(m1, RandomAgent(random), e, hyper_parameters, assess_count, player_metrics)
+                print("win loss ratio against random", win_loss_ratio_against_random)
             wins = 0
             losses = 0
             ties = 0
-    return total_avg_score
+    return win_loss_ratio_against_ai
 
 
 if __name__ == "__main__":

@@ -9,7 +9,7 @@ class HyperParameters:
    # Number of games
    max_games: int = 100000
    # Number of games for the model to assess
-   assess_model_games : int = 2
+   assess_model_games : int = 10
    # How fast the model learns
    learning_rate: float = 0.0008
    # How fast the model changes gradients
@@ -19,13 +19,13 @@ class HyperParameters:
    # Print the model internals.
    print_model_nn: bool = False
    # How many epoch to evaluate
-   accuracy_interval: int = 50
+   accuracy_interval: int = 10
    # How many epoch to the model is saved
    save_interval: int = 10000
    # Which value function to use
    pgr: int  = SCORE 
    # How many simulations of tree search to run
-   num_simulations : int = 3
+   num_simulations : int = 20
    # Seed to use for random in the environment
    ers : int = 71
    # How many round per game.

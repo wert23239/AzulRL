@@ -2,8 +2,44 @@ from constants import PER_TURN, PER_GAME
 from random_agent import RandomAgent
 from ai_algorithm import AIAlgorithm
 
-def assess_agent(m1, random, e, name, hyper_parameters,assess_count,player_metrics):
-    m2 = AIAlgorithm()
+def human_print(turn,state,possible_moves):
+    mosaic_template = [[1, 2, 3, 4, 5],
+                    [5, 1, 2, 3, 4],
+                    [4, 5, 1, 2, 3],
+                    [3, 4, 5, 1, 2],
+                    [2, 3, 4, 5, 1]]
+    print("------ Your Mosaic (Left) ----- Mosaic Template (Right): -----")
+    for i, row in enumerate(state.mosaics[turn]):
+        print(i, row, "\t\t\t", mosaic_template[i])
+    print("----------------------- Your Triangle: -----------------------")
+    for i, row in enumerate(state.triangles[turn]):
+        print(i, row)
+    print("------------------------ Your Floor: -------------------------")
+    print(state.floors[turn])
+    print()
+    print()
+    print("---- Opponent's Mosaic (Left) --- Mosaic Template (Right): ---")
+    for i, row in enumerate(state.mosaics[(turn + 1) % 2]):
+        print(i, row, "\t\t\t", mosaic_template[i])
+    print("-------------------- Opponent's Triangle: --------------------")
+    for i, row in enumerate(state.triangles[(turn + 1) % 2]):
+        print(i, row)
+    print("---------------------- Opponent's Floor: ---------------------")
+    print(state.floors[(turn + 1) % 2])
+    print()
+    print()
+    print("-------------------------- Circles: --------------------------")
+    for i, circle in enumerate(state.circles):
+        print(i, sorted(circle))
+    print("-------------------------- Center: ---------------------------")
+    print(sorted(state.center))
+    print("\nWhich circle would you like to pull from,")
+    print("Which color would you like to pull from it,")
+    print("And on which line of your triangle will you  place the tiles?")
+    print("Format answer as '<circle>,<color>,<row>'.")
+    print("Refer to the center as circle 5,")
+
+def assess_agent(m1, m2, e, hyper_parameters,assess_count,player_metrics):
     player1_scores = []
     player1_rewards = []
     player1_wrong_guesses = []
@@ -12,7 +48,10 @@ def assess_agent(m1, random, e, name, hyper_parameters,assess_count,player_metri
     ties = 0
     if  hasattr(m1.model, 'tensorboard'):
             m1.model.tensorboard.step = assess_count
-    for i in range(hyper_parameters.assess_model_games):
+    games_to_assess = hyper_parameters.assess_model_games
+    if type(m2) == AIAlgorithm:
+        games_to_assess = 1
+    for i in range(games_to_assess):
         turn = e.reset()
         done = False
         total_score = 0
@@ -47,12 +86,11 @@ def assess_agent(m1, random, e, name, hyper_parameters,assess_count,player_metri
     if hasattr(m1.model, 'tensorboard'):
         m1.model.tensorboard.update_stats(avg_score=avg_score,max_score=max_score,avg_reward=avg_reward, reward_max=max_reward,
     player_wins = player_metrics.wins,player_losses = player_metrics.losses, player_ties= player_metrics.ties,  illegal_moves =  player_metrics.illegal_moves, total_moves = player_metrics.total_moves)
-    result = str("player: {} avg_score: {} max_score:{} avg_reward: {} max_reward:{} ").format(
-        name, avg_score, max_score, avg_reward, max_reward)
-    print("win loss ratio against random: ",wins/(losses+wins+ties))
+    result = str("avg_score: {} max_score:{} avg_reward: {} max_reward:{} ").format(
+        avg_score, max_score, avg_reward, max_reward)
+    print("win loss ratio against opponent: ",round(wins/(losses+wins+.001),2))
     print(result)
-    print()
-    return avg_score
+    return wins/(losses+wins+.001)
 
 def score_to_reward(current_scores, done):
     if(not done):
