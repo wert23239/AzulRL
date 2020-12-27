@@ -23,7 +23,7 @@ True and the 'bot' option is used.
 
 def main(player1_type, player2_type, hyper_parameters):
     random = RandomOrOverride()
-    total_avg_score=0
+    total_wins_against_ai=0
     is_playing_bot = True
     if(player1_type == "human" or player2_type == "human"):
         is_playing_bot = False
@@ -88,20 +88,21 @@ def main(player1_type, player2_type, hyper_parameters):
                 m1_shadow.train_and_clear()
                 m1.model.model.load_weights("tmp.h5")
                 assess_count +=1
-                win_loss_ratio=assess_agent(m1_shadow, m1, e, hyper_parameters, assess_count, player_metrics)
-                if (win_loss_ratio >= .50):
+                wins=assess_agent(m1_shadow, m1, e, hyper_parameters, assess_count, player_metrics)
+                if (wins >= hyper_parameters.assess_model_games/2.0):
                     m1 = m1_shadow
-                    print("model got better")
+                    print("model got better!!!!")
                 else:
-                    print("model got worse")
-                win_loss_ratio_against_ai=assess_agent(m1, AIAlgorithm(), e, hyper_parameters, assess_count, player_metrics)
-                print("win loss ratio against ai", win_loss_ratio_against_ai)
-                win_loss_ratio_against_random=assess_agent(m1, RandomAgent(random), e, hyper_parameters, assess_count, player_metrics)
-                print("win loss ratio against random", win_loss_ratio_against_random)
+                    print("model got worse :(")
+                wins_against_ai=assess_agent(m1, AIAlgorithm(), e, hyper_parameters, assess_count, player_metrics,True)
+                print("wins against ai", wins_against_ai)
+                total_wins_against_ai+=wins_against_ai
+                wins_against_random=assess_agent(m1, RandomAgent(random), e, hyper_parameters, assess_count, player_metrics)
+                print("wins against random", wins_against_random)
             wins = 0
             losses = 0
             ties = 0
-    return win_loss_ratio_against_ai
+    return total_wins_against_ai/assess_count
 
 
 if __name__ == "__main__":

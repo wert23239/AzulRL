@@ -39,14 +39,14 @@ def human_print(turn,state,possible_moves):
     print("Format answer as '<circle>,<color>,<row>'.")
     print("Refer to the center as circle 5,")
 
-def assess_agent(m1, m2, e, hyper_parameters,assess_count,player_metrics):
+def assess_agent(m1, m2, e, hyper_parameters,assess_count,player_metrics,add_to_tensorboard=False):
     player1_scores = []
     player1_rewards = []
     player1_wrong_guesses = []
     wins = 0
     losses = 0
     ties = 0
-    if  hasattr(m1.model, 'tensorboard'):
+    if  hasattr(m1.model, 'tensorboard') and add_to_tensorboard:
             m1.model.tensorboard.step = assess_count
     games_to_assess = hyper_parameters.assess_model_games
     if type(m2) == AIAlgorithm:
@@ -63,9 +63,6 @@ def assess_agent(m1, m2, e, hyper_parameters,assess_count,player_metrics):
             else:
                 player = m2
             previous_turn = turn
-            if(previous_turn == 0  and i==hyper_parameters.assess_model_games-1 and hasattr(m1.model, 'tensorboard')):
-                player.model.no_op_action(e.state,e.possible_actions,turn)
-                break
             action = player.action(e)
             state, turn, _, score_delta, current_scores, done = e.move(action)
             if done:
@@ -79,18 +76,21 @@ def assess_agent(m1, m2, e, hyper_parameters,assess_count,player_metrics):
             losses += 1
         else:
             ties += 1
+    if(hasattr(m1.model, 'tensorboard') and add_to_tensorboard):
+        turn = e.reset()
+        m1.model.no_op_action(e.state,e.possible_moves,turn)
     avg_score = sum(player1_scores) / len(player1_scores)
     max_score = max(player1_scores)
     avg_reward = sum(player1_rewards) / len(player1_rewards)
     max_reward = max(player1_rewards)
-    if hasattr(m1.model, 'tensorboard'):
+    if hasattr(m1.model, 'tensorboard') and add_to_tensorboard:
         m1.model.tensorboard.update_stats(avg_score=avg_score,max_score=max_score,avg_reward=avg_reward, reward_max=max_reward,
     player_wins = player_metrics.wins,player_losses = player_metrics.losses, player_ties= player_metrics.ties,  illegal_moves =  player_metrics.illegal_moves, total_moves = player_metrics.total_moves)
     result = str("avg_score: {} max_score:{} avg_reward: {} max_reward:{} ").format(
         avg_score, max_score, avg_reward, max_reward)
     print("win loss ratio against opponent: ",round(wins/(losses+wins+.001),2))
     print(result)
-    return wins/(losses+wins+.001)
+    return wins
 
 def score_to_reward(current_scores, done):
     if(not done):
