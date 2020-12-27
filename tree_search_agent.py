@@ -23,12 +23,12 @@ class TreeSearchAgent:
     def action(self, environment):
         possible_actions_list = list(environment.possible_moves)
         score_map = defaultdict(list)  # map from action to list of rewards when that action is done
-        for i in range(self.num_simulations):
+        for i in range(self.hyper_parameters.num_simulations):
             e = copy.deepcopy(environment)
             action = self.model.simulated_action(environment.state, possible_actions_list, environment.turn)
             state_actions, reward = self._find_action_value(action, e)
             for s, a in state_actions:
-                self.model.record_action_reward(environment.state, action, reward)
+                self.model.record_action_reward(environment.state.to_observable_state(environment.turn).tostring(), action, reward)
             score_map[action].append(reward)
         average_scores = {action_score: mean(score_map[action_score]) for action_score in score_map}
         return max(average_scores.items(), key=operator.itemgetter(1))[0]
