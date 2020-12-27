@@ -1,13 +1,15 @@
+import time
+from collections import defaultdict
+
 import numpy as np
 import tensorflow as tf
-from collections import defaultdict
 from tensorflow import keras
 from tensorflow.keras import layers
-import time
 
 from action import Action
 from constants import (NUMBER_OF_CIRCLES, NUMBER_OF_COLORS, NUMBER_OF_ROWS,
                        PER_GAME, WIN_LOSS)
+from example import Example
 from modified_tensorboard import ModifiedTensorBoard
 
 
@@ -32,6 +34,7 @@ class PolicyGradientModel:
         self.legal_moves = 0
         self.illegal_moves = 0
         self._reset_state_and_action_counts()
+        self.examples = []
         if hyper_parameters.load:  # Add check for weights file exisiting
             print("Loading Weights...")
             try:
@@ -88,13 +91,26 @@ class PolicyGradientModel:
         # The key is a pair of encoded state and encoded action.
         self.action_totals[(state.to_hashable_state(turn), self.encode_action(action))] += score
     
-    def train(self,examples):
-        states = np.array([example.state for example in examples])
-        possible_actions = [self.encode_possible_actions(example.possible_actions,False) for example in examples]
+    def real_action(self,state,possible_actions,turn):
+        state = state.to_observable_state(turn)
+        state_string = state.tostring()
+        total_count = self.state_counts[state_string]
+        policy_vector = [0]*self.num_actions
+        for action in possible_actions:
+            policy_vector[self.encode_action(action)]=self.action_counts[(state_string, self.encode_action(action))]/total_count
+        action_choosen = self.random_or_override.weighted_random_choice(len(policy_vector), policy_vector)
+        example = Example(policy_vector,possible_actions,state)
+        self.examples.append(example)
+        return self._convert_action_num(action_choosen)
+    
+    def train(self):
+        states = np.array([example.state for example in self.examples])
+        possible_actions = [self.encode_possible_actions(example.possible_actions,False) for example in self.examples]
         possible_actions_tensor = tf.convert_to_tensor(np.array(possible_actions),dtype=tf.float32)
-        actions = [self.encode_action(example.action) for example in examples]
-        one_hot_encoded_actions = tf.keras.utils.to_categorical(actions, num_classes=self.num_actions)
-        self.model.fit([states,possible_actions_tensor],one_hot_encoded_actions,verbose = 0)
+        policy_vector = np.array([example.policy_vector for example in self.examples])
+        self.model.fit([states,possible_actions_tensor],policy_vector,verbose = 0)
+        self.examples.clear()
+
 
 
     def no_op_action(self, state, possible_actions, turn):
@@ -103,15 +119,6 @@ class PolicyGradientModel:
         possible_actions_encoded = self.encode_possible_actions(possible_actions,True)
         action_probs = self.model.predict([state,possible_actions_encoded],callbacks=[self.tensorboard])
         return self._convert_action_num(np.argmax(action_probs))
-
-    def encode_possible_actions(self,possible_actions,to_tensor):
-        action_mask = [-10000000000000000000000000000000000]*self.num_actions
-        for action in possible_actions:
-          action_num = self.encode_action(action)
-          action_mask[action_num] = 0.0
-        if to_tensor:
-            return tf.convert_to_tensor(np.array([action_mask]),dtype=tf.float32)
-        return action_mask
 
     def _upper_confidence_bound(self, state, action_probs, possible_actions):
         best_action = (-1, -np.inf)
@@ -138,6 +145,15 @@ class PolicyGradientModel:
         color = action_number // (NUMBER_OF_ROWS) + 1
         row = action_number % NUMBER_OF_ROWS
         return Action(circle, color, row)
+    
+    def encode_possible_actions(self,possible_actions,to_tensor):
+        action_mask = [-10000000000000000000000000000000000]*self.num_actions
+        for action in possible_actions:
+          action_num = self.encode_action(action)
+          action_mask[action_num] = 0.0
+        if to_tensor:
+            return tf.convert_to_tensor(np.array([action_mask]),dtype=tf.float32)
+        return action_mask
         
 
     

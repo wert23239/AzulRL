@@ -17,21 +17,17 @@ class TreeSearchAgent:
         self.r = random
         self.model = PolicyGradientModel(random,hyper_parameters,name)
         self.mc_max_depth = hyper_parameters.max_depth
-        self.pg_examples = []
         self.visited = set()
 
     def action(self, environment):
         possible_actions_list = list(environment.possible_moves)
-        score_map = defaultdict(list)  # map from action to list of rewards when that action is done
         for i in range(self.hyper_parameters.num_simulations):
             e = copy.deepcopy(environment)
             action = self.model.simulated_action(environment.state, possible_actions_list, environment.turn)
             state_action_turns, reward = self._find_action_value(action, e)
             for s, a, t in state_action_turns:
                 self.model.record_action_reward(s, a, t, reward)
-            score_map[action].append(reward)
-        average_scores = {action_score: mean(score_map[action_score]) for action_score in score_map}
-        return max(average_scores.items(), key=operator.itemgetter(1))[0]
+        return self.model.real_action(environment.state,possible_actions_list,environment.turn)
 
 
     def _find_action_value(self,action, environment):
@@ -52,38 +48,19 @@ class TreeSearchAgent:
         return state_action_turns, value
 
     def calculate_value(self, reward):
-        returns = []
         if(self.hyper_parameters.pgr == WIN_LOSS):
             if reward > 0:
                 reward = 1
             elif reward < 0:
                 reward = -1
+            return reward
         else:
             reward=min(reward,10)
             reward=max(-10,reward)
             reward=float(reward/10)
             return reward
 
-
-
-        # Smallest number such that 1.0 + eps != 1.0
-        eps = np.finfo(np.float32).eps.item()
-        discounted_sum = 0
-        for r in rewards_history[::-1]:
-            discounted_sum = r + self.gamma * discounted_sum
-            returns.insert(0, discounted_sum)
-
-        # Normalize
-        returns = np.array(returns)
-        returns = (returns - np.mean(returns)) / (np.std(returns) + eps)
-        returns = returns.tolist()
-        return returns
-    
-    def save(self,example):
-        self.pg_examples.append(example)
-
     def train(self):
-        self.model.train(self.pg_examples)
-        self.pg_examples.clear()
+        self.model.train()
 
 

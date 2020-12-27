@@ -3,7 +3,6 @@ import numpy as np
 
 from ai_algorithm import AIAlgorithm
 from environment import Environment
-from example import Example
 from human_player import HumanPlayer
 from hyper_parameters import HyperParameters
 from random_agent import RandomAgent
@@ -60,28 +59,23 @@ def main(player1_type, player2_type, hyper_parameters):
             else:
                 player = m2
             action = player.action(e)
-            if type(player) == TreeSearchAgent:
-                example = Example(action,e.possible_moves,e.state.to_observable_state(turn))
-                player.save(example)
             state, turn, _, score_delta, current_scores, done = e.move(action)
             if not is_playing_bot:
                 print("score delta: ", score_delta)
                 print("current scores: ", current_scores) 
             if(done):
-                if type(player) == TreeSearchAgent:
-                    player.train()
-
                 if(current_scores[0]>current_scores[1]):
                     wins += 1
                 elif(current_scores[1]<current_scores[0]):
                     losses +=1
                 else:
                     ties += 1
-        if (number_of_games % hyper_parameters.accuracy_interval == 0) or  (hyper_parmeters.load and number_of_games==1):
+        if (number_of_games % hyper_parameters.accuracy_interval == 0):
             print("win loss ratio: ",wins/(losses+wins+ties))
             print("Epoch: ",number_of_games)
             player_metrics = PlayerMetrics(wins,losses,ties)
             if type(m1) == TreeSearchAgent:
+                player.train()
                 legal_ratio = m1.model.legal_moves/(m1.model.legal_moves+m1.model.illegal_moves)
                 total_moves = m1.model.legal_moves+m1.model.illegal_moves
                 print("for Epoch, legal:illegal moves ratio: ", m1.model.legal_moves/(m1.model.legal_moves+m1.model.illegal_moves))

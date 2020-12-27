@@ -19,7 +19,7 @@ class HyperParameters:
    # Print the model internals.
    print_model_nn: bool = False
    # How many epoch to evaluate
-   accuracy_interval: int = 5
+   accuracy_interval: int = 50
    # How many epoch to the model is saved
    save_interval: int = 10000
    # Which value function to use
