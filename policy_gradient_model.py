@@ -22,9 +22,8 @@ class PolicyGradientModel:
        # Custom tensorboard object
         file_name = str(hyper_parameters)
         file_name = "".join([c for c in file_name if c.isalpha() or c.isdigit()]).strip()
-        self.file_name = file_name
-        log_name = "logs/{}-{}-{}".format(name,file_name,int(time.time()))
-        print(file_name)
+        self.file_name = "logs/{}-{}-{}".format(name,file_name,int(time.time()))
+        print(self.file_name)
 
         if settings.tb_log:
             self.tensorboard = ModifiedTensorBoard(name,log_dir=log_name)
