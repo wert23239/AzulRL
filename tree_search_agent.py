@@ -58,8 +58,13 @@ class TreeSearchAgent:
             reward=float(reward/20.0)
             return reward
 
-    def train_and_clear(self):
-        self.model.train_and_clear()
+    def train(self):
+        self.model.train()
         self.visited = set()
+    
+    def clear(self):
+        self.model.clear()
+        # self.visited = set()
+
 
 

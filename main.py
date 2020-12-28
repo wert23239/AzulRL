@@ -24,7 +24,7 @@ True and the 'bot' option is used.
 
 def main(player1_type, player2_type, hyper_parameters, settings):
     random = RandomOrOverride()
-    total_wins_against_ai=0
+    total_score_against_ai=0
     is_playing_bot = True
     if(player1_type == "human" or player2_type == "human"):
         is_playing_bot = False
@@ -66,6 +66,8 @@ def main(player1_type, player2_type, hyper_parameters, settings):
                 print("score delta: ", score_delta)
                 print("current scores: ", current_scores) 
             if(done):
+                if type(m1) == TreeSearchAgent:
+                    m1.clear()
                 if(current_scores[0]>current_scores[1]):
                     wins += 1
                 elif(current_scores[1]<current_scores[0]):
@@ -86,7 +88,7 @@ def main(player1_type, player2_type, hyper_parameters, settings):
                 m1.model.illegal_moves = 0
                 m1.model.model.save_weights("tmp.h5")
                 m1_shadow = m1
-                m1_shadow.train_and_clear()
+                m1_shadow.train()
                 m1.model.model.load_weights("tmp.h5")
                 assess_count +=1
                 wins=assess_agent(m1_shadow, m1, e, hyper_parameters, assess_count, player_metrics)
@@ -95,15 +97,15 @@ def main(player1_type, player2_type, hyper_parameters, settings):
                     print("model got better!!!!")
                 else:
                     print("model got worse :(")
-                wins_against_ai=assess_agent(m1, AIAlgorithm(), e, hyper_parameters, assess_count, player_metrics,True)
-                print("wins against ai", wins_against_ai)
-                total_wins_against_ai+=wins_against_ai
+                score_against_ai=assess_agent(m1, AIAlgorithm(), e, hyper_parameters, assess_count, player_metrics,True)
+                print("score against ai", score_against_ai)
+                total_score_against_ai+=score_against_ai
                 wins_against_random=assess_agent(m1, RandomAgent(random), e, hyper_parameters, assess_count, player_metrics)
                 print("wins against random", wins_against_random)
             wins = 0
             losses = 0
             ties = 0
-    return total_wins_against_ai/assess_count
+    return score_against_ai/assess_count
 
 
 if __name__ == "__main__":

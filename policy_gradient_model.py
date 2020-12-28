@@ -16,17 +16,17 @@ from modified_tensorboard import ModifiedTensorBoard
 
 class PolicyGradientModel:
     def __init__(self, random_or_override,hyper_parameters,settings,name="Bilbo"):
-        self.gamma = hyper_parameters.gamma  # Discount factor for past rewards
         self.hyper_parameters = hyper_parameters
+        self.settings = settings
         self._create_model()
        # Custom tensorboard object
-        file_name = str(hyper_parameters)
-        file_name = "".join([c for c in file_name if c.isalpha() or c.isdigit()]).strip()
-        self.file_name = "logs/{}-{}-{}".format(name,file_name,int(time.time()))
+        self.file_name = str(hyper_parameters)
+        self.file_name = "".join([c for c in self.file_name if c.isalpha() or c.isdigit()]).strip()
+        log_file_name = "logs/{}-{}-{}".format(name,self.file_name,int(time.time()))
         print(self.file_name)
 
         if settings.tb_log:
-            self.tensorboard = ModifiedTensorBoard(name,log_dir=log_name)
+            self.tensorboard = ModifiedTensorBoard(name,log_dir=log_file_name)
         self.use_ucb = settings.use_ucb
         self.episode_count = 0
         self.train_count = 0
@@ -104,16 +104,19 @@ class PolicyGradientModel:
         self.examples.append(example)
         return self._convert_action_num(action_choosen)
     
-    def train_and_clear(self):
+    def train(self):
         states = np.array([example.state for example in self.examples])
         possible_actions = [self.encode_possible_actions(example.possible_actions,False) for example in self.examples]
         possible_actions_tensor = tf.convert_to_tensor(np.array(possible_actions),dtype=tf.float32)
         policy_vector = np.array([example.policy_vector for example in self.examples])
-        self.model.fit([states,possible_actions_tensor],policy_vector,verbose = 0)
-        self.examples.clear()
+        self.model.fit([states,possible_actions_tensor],policy_vector,batch_size=64,epochs=10,verbose = 0)
+        if self.settings.save: 
+            self.model.save_weights(self.file_name)
         self._reset_state_and_action_counts()
-        self.model.save_weights(self.file_name)
-
+    
+    def clear(self):
+        pass
+        # self._reset_state_and_action_counts()
 
 
     def no_op_action(self, state, possible_actions, turn):

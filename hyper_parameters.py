@@ -11,15 +11,9 @@ class HyperParameters:
    # Number of games for the model to assess
    assess_model_games : int = 10
    # How fast the model learns
-   learning_rate: float = 0.0008
-   # How fast the model changes gradients
-   alpha: float = 1e-7
-   # Discount factor
-   gamma: float = .968
+   learning_rate: float = 0.0004
    # How many epoch to evaluate
-   accuracy_interval: int = 10
-   # How many epoch to the model is saved
-   save_interval: int = 10000
+   accuracy_interval: int = 5
    # Which value function to use
    pgr: int  = SCORE 
    # How many simulations of tree search to run
