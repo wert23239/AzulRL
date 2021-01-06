@@ -129,10 +129,12 @@ class PolicyGradientModel:
         for a_tuple, p in np.ndenumerate(action_probs):
             a = a_tuple[1]
             if self._convert_action_num(a) in possible_actions:
-                q = 0
-                if self.action_counts[(state, a)] != 0:
+                action_score = 0
+                if (state, a) in self.action_totals:
                     q = self.action_totals[(state, a)] / self.action_counts[(state, a)]
-                action_score = q + p * np.sqrt(self.state_counts[state]) / (1.0 + self.action_counts[(state, a)])
+                    action_score = q + p * np.sqrt(self.state_counts[state]) / (1.0 + self.action_counts[(state, a)])
+                else:
+                    action_score = p * np.sqrt(self.state_counts[state] + self.hyper_parameters.eps)
                 if action_score > best_action[1]:
                     best_action = (a, action_score)
         return best_action[0]

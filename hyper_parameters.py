@@ -26,3 +26,5 @@ class HyperParameters:
    num_hl: int = 2
    # Size of the hidden layers in the neural net.
    hl_size: int = 235
+   # Epsilon (controls exploration/exploitation).
+   eps: float = 1e-8
