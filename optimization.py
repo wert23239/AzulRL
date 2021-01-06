@@ -8,22 +8,22 @@ from hyper_parameters import HyperParameters
 from main import main as azul_main
 
 
-def call_azul(learning_rate,num_simulations,ers,num_hl, hl_size,max_depth):
+def call_azul(learning_rate,num_simulations,ers,num_hl, hl_size):
     # seed_param = None
     # if(int(ers)>50):
     #     seed_param = int(ers)
-    max_games =int(3500/int(1))
-    hyper_parameters = HyperParameters(max_games=max_games,assess_model_games=20,learning_rate=round(learning_rate,3),
+    max_games =int(2000/int(1))
+    hyper_parameters = HyperParameters(max_games=max_games,assess_model_games=20,learning_rate=round(learning_rate,5),
     accuracy_interval=100,pgr=SCORE,
     num_simulations=int(num_simulations),ers=int(ers),round_limit=1,num_hl=int(num_hl),
-    hl_size=int(hl_size),max_depth=int(max_depth))
+    hl_size=int(hl_size))
     settings=Settings()
     return azul_main("bot","bot",hyper_parameters,settings)
 
 # Bounded region of parameter space
 pbounds = {'learning_rate': (.0001,.01),
-           'num_simulations':(20,30.9999999),'ers':(0,100),
-           'num_hl':(1,5.999),'hl_size':(64,512),'max_depth':(2,7.999)}
+           'num_simulations':(20,50.9999999),'ers':(0,100),
+           'num_hl':(1,5.999),'hl_size':(64,512)}
 
 optimizer = BayesianOptimization(
     f=call_azul,
@@ -33,8 +33,8 @@ optimizer = BayesianOptimization(
 )
 
 optimizer.maximize(
-    init_points=2,
-    n_iter=10,
+    init_points=4,
+    n_iter=15,
 )
 
 print(optimizer.max)

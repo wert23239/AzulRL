@@ -16,7 +16,6 @@ class TreeSearchAgent:
         self.hyper_parameters = hyper_parameters
         self.r = random
         self.model = PolicyGradientModel(random, hyper_parameters, settings, name)
-        self.mc_max_depth = hyper_parameters.max_depth
         self.visited = set()
 
     def action(self, environment):

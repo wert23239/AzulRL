@@ -88,7 +88,6 @@ def assess_agent(m1, m2, e, hyper_parameters,assess_count,player_metrics,add_to_
     player_wins = player_metrics.wins,player_losses = player_metrics.losses, player_ties= player_metrics.ties,  illegal_moves =  player_metrics.illegal_moves, total_moves = player_metrics.total_moves)
     result = str("avg_score: {} max_score:{} avg_reward: {} max_reward:{} ").format(
         avg_score, max_score, avg_reward, max_reward)
-    print("win loss ratio against opponent: ",round(wins/(losses+wins+.001),2))
     print(result)
     if type(m2) == AIAlgorithm:
         return max_score
