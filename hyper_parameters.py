@@ -13,9 +13,9 @@ class HyperParameters:
    # How fast the model learns
    learning_rate: float = 0.0004
    # How many epoch to evaluate
-   accuracy_interval: int = 5
+   accuracy_interval: int = 1
    # Which value function to use
-   pgr: int  = SCORE 
+   pgr: int = SCORE 
    # How many simulations of tree search to run
    num_simulations : int = 20
    # Seed to use for random in the environment

@@ -111,12 +111,10 @@ class PolicyGradientModel:
         policy_vector = np.array([example.policy_vector for example in self.examples])
         self.model.fit([states,possible_actions_tensor],policy_vector,batch_size=64,epochs=10,verbose = 0)
         if self.settings.save: 
-            self.model.save_weights(self.file_name)
-        self._reset_state_and_action_counts()
+            self.model.save(self.file_name+".h5")
     
     def clear(self):
-        pass
-        # self._reset_state_and_action_counts()
+        self._reset_state_and_action_counts()
 
 
     def no_op_action(self, state, possible_actions, turn):

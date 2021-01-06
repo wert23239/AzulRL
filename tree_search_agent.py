@@ -59,11 +59,10 @@ class TreeSearchAgent:
 
     def train(self):
         self.model.train()
-        self.visited = set()
     
     def clear(self):
         self.model.clear()
-        # self.visited = set()
+        self.visited = set()
 
 
 

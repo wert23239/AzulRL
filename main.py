@@ -1,19 +1,20 @@
 import copy
 import sys
+from collections import defaultdict
+
 import numpy as np
 
 from ai_algorithm import AIAlgorithm
+from constants import PER_GAME, PER_TRAIN
 from environment import Environment
 from human_player import HumanPlayer
 from hyper_parameters import HyperParameters
-from settings import Settings
+from player_metrics import PlayerMetrics
 from random_agent import RandomAgent
 from random_or_override import RandomOrOverride
+from settings import Settings
 from tree_search_agent import TreeSearchAgent
-from player_metrics import PlayerMetrics
 from util import assess_agent
-
-from collections import defaultdict
 
 """
 Usage: python main.py player1_type player2_type <train_bots>
@@ -66,7 +67,7 @@ def main(player1_type, player2_type, hyper_parameters, settings):
                 print("score delta: ", score_delta)
                 print("current scores: ", current_scores) 
             if(done):
-                if type(m1) == TreeSearchAgent:
+                if type(m1) == TreeSearchAgent and settings.reset_time == PER_GAME:
                     m1.clear()
                 if(current_scores[0]>current_scores[1]):
                     wins += 1
@@ -79,6 +80,8 @@ def main(player1_type, player2_type, hyper_parameters, settings):
             print("win loss ratio: ",wins/(losses+wins+ties))
             print("Epoch: ",number_of_games)
             if type(m1) == TreeSearchAgent:
+                if settings.reset_time == PER_TRAIN:
+                    m1.clear()
                 legal_ratio = m1.model.legal_moves/(m1.model.legal_moves+m1.model.illegal_moves)
                 total_moves = m1.model.legal_moves+m1.model.illegal_moves
                 print("for Epoch, legal:illegal moves ratio: ", m1.model.legal_moves/(m1.model.legal_moves+m1.model.illegal_moves))
