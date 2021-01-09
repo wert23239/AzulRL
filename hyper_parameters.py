@@ -13,7 +13,7 @@ class HyperParameters:
    # How fast the model learns
    learning_rate: float = 0.0004
    # How many epoch to evaluate
-   accuracy_interval: int = 1
+   accuracy_interval: int = 50
    # Which value function to use
    pgr: int = SCORE 
    # How many simulations of tree search to run
@@ -23,7 +23,7 @@ class HyperParameters:
    # How many round per game.
    round_limit: int = 1
    # How many hidden layers will exist in the neural net.
-   num_hl: int = 2
+   num_hl: int = 5
    # Size of the hidden layers in the neural net.
    hl_size: int = 235
    # Epsilon (controls exploration/exploitation).

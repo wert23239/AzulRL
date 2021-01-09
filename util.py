@@ -1,6 +1,7 @@
 from constants import PER_TURN, PER_GAME
 from random_agent import RandomAgent
 from ai_algorithm import AIAlgorithm
+from tree_search_agent import TreeSearchAgent
 
 def human_print(turn,state):
     mosaic_template = [[1, 2, 3, 4, 5],
@@ -52,6 +53,9 @@ def assess_agent(m1, m2, e, hyper_parameters,assess_count,player_metrics,add_to_
     if type(m2) == AIAlgorithm:
         games_to_assess = 1
     for i in range(games_to_assess):
+        m1.clear()
+        if type(m2) == TreeSearchAgent:
+            m2.clear()
         turn = e.reset()
         done = False
         total_score = 0

@@ -90,11 +90,14 @@ def main(player1_type, player2_type, hyper_parameters, settings):
                 m1.model.legal_moves = 0
                 m1.model.illegal_moves = 0
                 m1.model.model.save_weights("tmp.h5")
-                m1_shadow = m1
+                examples = copy.deepcopy(m1.model.examples)
+                m1_shadow = TreeSearchAgent(random,hyper_parameters,settings,"BilboShadow")
+                m1_shadow.model.model.load_weights("tmp.h5")
+                m1_shadow.model.examples = examples
                 m1_shadow.train()
-                m1.model.model.load_weights("tmp.h5")
                 assess_count +=1
                 wins=assess_agent(m1_shadow, m1, e, hyper_parameters, assess_count, player_metrics)
+                print("Wins:", wins)
                 if (wins >= hyper_parameters.assess_model_games/2.0):
                     m1 = m1_shadow
                     print("model got better!!!!")
@@ -108,6 +111,7 @@ def main(player1_type, player2_type, hyper_parameters, settings):
             wins = 0
             losses = 0
             ties = 0
+            m1.clear()
     return score_against_ai/assess_count
 
 
