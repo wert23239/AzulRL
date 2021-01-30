@@ -21,11 +21,6 @@ class PolicyGradientModel:
        # Custom tensorboard object
         self.file_name = str(hyper_parameters)
         self.file_name = "".join([c for c in self.file_name if c.isalpha() or c.isdigit()]).strip()
-        log_file_name = "logs/{}-{}-{}".format(name,self.file_name,int(time.time()))
-        print(self.file_name)
-
-        if settings.tb_log:
-            self.tensorboard = ModifiedTensorBoard(name,log_dir=log_file_name)
         self.use_ucb = settings.use_ucb
         self.episode_count = 0
         self.train_count = 0
@@ -35,12 +30,25 @@ class PolicyGradientModel:
         self.illegal_moves = 0
         self._reset_state_and_action_counts()
         self.examples = []
-        if settings.load:  # Add check for weights file exisiting
+        self.use_model = True
+
+    def maybe_log(self):
+        print(self.file_name)
+        log_file_name = "logs/{}-{}".format(self.file_name,int(time.time()))
+        if self.settings.tb_log:
+            self.tensorboard = ModifiedTensorBoard(self.name,log_dir=log_file_name)
+
+    def maybe_load(self):
+        if self.settings.load:  # Add check for weights file exisiting
             print("Loading Weights...")
             try:
-                self.model.load_weights("PG_complete.h5".format(self.name))
+                self.model.load_weights("PG_complete.h5")
             except:
                 print("No Model :(")
+
+    def maybe_save(self):
+        if self.settings.save: 
+            self.model.save(self.file_name+".h5")
 
     def _reset_state_and_action_counts(self):
         self.state_counts = defaultdict(int)
@@ -74,18 +82,36 @@ class PolicyGradientModel:
         possible_actions_encoded = self.encode_possible_actions(possible_actions,True)
         # Predict action probabilities and estimated future rewards
         # from environment state
-        action_probs = self.model.predict([state,possible_actions_encoded])
+        action_probs = None
+        if not self.use_model:
+            action_probs = self.random_action_distribution(possible_actions)
+        else:
+            action_probs = np.squeeze(self.model.predict([state,possible_actions_encoded]))
         self.legal_moves += 1
 
         action = None
         if self.use_ucb:
             action = self._upper_confidence_bound(state_string, action_probs, set(possible_actions))
-            self.state_counts[state_string] += 1
-            self.action_counts[(state_string, action)] += 1
         else:
-            action = self.random_or_override.weighted_random_choice(self.num_actions, np.squeeze(action_probs))
+            action = self.random_or_override.weighted_random_choice(self.num_actions, action_probs)
+
+        self.state_counts[state_string] += 1
+        self.action_counts[(state_string, action)] += 1
 
         return self._convert_action_num(action)
+
+    def random_action_distribution(self, possible_actions):
+        action_probs = [0.0] * self.num_actions
+        total_random_choices = 0.0
+        for a in possible_actions:
+            choice = self.random_or_override.random_range_cont()
+            total_random_choices += choice
+            action_probs[self.encode_action(a)] = choice
+        # Normalize the action probs
+        for i in range(len(action_probs)):
+            action_probs[i] /= total_random_choices
+        array_blah = np.array(action_probs)
+        return array_blah
 
     def record_action_reward(self, state, action, score):
         # The key is a pair of encoded state and encoded action.
@@ -109,8 +135,6 @@ class PolicyGradientModel:
         possible_actions_tensor = tf.convert_to_tensor(np.array(possible_actions),dtype=tf.float32)
         policy_vector = np.array([example.policy_vector for example in self.examples])
         self.model.fit([states,possible_actions_tensor],policy_vector,batch_size=64,epochs=10,verbose = 0)
-        if self.settings.save: 
-            self.model.save(self.file_name+".h5")
     
     def clear(self):
         self._reset_state_and_action_counts()
@@ -121,12 +145,11 @@ class PolicyGradientModel:
         state = np.array([state])
         possible_actions_encoded = self.encode_possible_actions(possible_actions,True)
         action_probs = self.model.predict([state,possible_actions_encoded],callbacks=[self.tensorboard])
-        return self._convert_action_num(np.argmax(action_probs))
 
     def _upper_confidence_bound(self, state, action_probs, possible_actions):
         best_action = (-1, -np.inf)
         for a_tuple, p in np.ndenumerate(action_probs):
-            a = a_tuple[1]
+            a = a_tuple[0]
             if self._convert_action_num(a) in possible_actions:
                 action_score = 0
                 if (state, a) in self.action_totals:

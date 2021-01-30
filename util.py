@@ -1,7 +1,10 @@
-from constants import PER_TURN, PER_GAME
-from random_agent import RandomAgent
+from colorama import Back, Style
+
 from ai_algorithm import AIAlgorithm
+from constants import PER_GAME, PER_TURN
+from random_agent import RandomAgent
 from tree_search_agent import TreeSearchAgent
+
 
 def human_print(turn,state):
     mosaic_template = [[1, 2, 3, 4, 5],
@@ -40,15 +43,13 @@ def human_print(turn,state):
     print("Format answer as '<circle>,<color>,<row>'.")
     print("Refer to the center as circle 5,")
 
-def assess_agent(m1, m2, e, hyper_parameters,assess_count,player_metrics,add_to_tensorboard=False):
+def assess_agent(m1, m2, e, hyper_parameters, tb_interval=0, player_metrics=None, m_tensorboard=None):
     player1_scores = []
     player1_rewards = []
     player1_wrong_guesses = []
     wins = 0
     losses = 0
     ties = 0
-    if  hasattr(m1.model, 'tensorboard') and add_to_tensorboard:
-            m1.model.tensorboard.step = assess_count
     games_to_assess = hyper_parameters.assess_model_games
     if type(m2) == AIAlgorithm:
         games_to_assess = 1
@@ -80,22 +81,29 @@ def assess_agent(m1, m2, e, hyper_parameters,assess_count,player_metrics,add_to_
             losses += 1
         else:
             ties += 1
-    if(hasattr(m1.model, 'tensorboard') and add_to_tensorboard):
-        turn = e.reset()
-        m1.model.no_op_action(e.state,e.possible_moves,turn)
     avg_score = sum(player1_scores) / len(player1_scores)
     max_score = max(player1_scores)
     avg_reward = sum(player1_rewards) / len(player1_rewards)
     max_reward = max(player1_rewards)
-    if hasattr(m1.model, 'tensorboard') and add_to_tensorboard:
-        m1.model.tensorboard.update_stats(avg_score=avg_score,max_score=max_score,avg_reward=avg_reward, reward_max=max_reward,
-    player_wins = player_metrics.wins,player_losses = player_metrics.losses, player_ties= player_metrics.ties,  illegal_moves =  player_metrics.illegal_moves, total_moves = player_metrics.total_moves)
-    result = str("avg_score: {} max_score:{} avg_reward: {} max_reward:{} ").format(
-        avg_score, max_score, avg_reward, max_reward)
-    print(result)
+    if m_tensorboard is not None and hasattr(m_tensorboard.model, 'tensorboard'):
+        m_tensorboard.model.tensorboard.step = tb_interval
+        turn = e.reset()
+        m_tensorboard.model.no_op_action(e.state,e.possible_moves,turn)
+        m_tensorboard.model.tensorboard.update_stats(
+            avg_score=avg_score,
+            max_score=max_score,
+            avg_reward=avg_reward,
+            reward_max=max_reward,
+            total_moves=player_metrics.total_moves)
+    result = str("{} vs. {} \t losses: {} ties: {} wins: {}  avg_score: {} max_score:{} avg_reward: {} max_reward:{}").format(
+        m1.name, m2.name, losses, ties, wins, avg_score, max_score, avg_reward, max_reward)
+    if (avg_reward > 0):
+        print(Back.GREEN + result + Style.RESET_ALL)
+    else:
+        print(Back.RED + result + Style.RESET_ALL)
     if type(m2) == AIAlgorithm:
         return max_score
-    return wins
+    return wins+ties*.5
 
 def score_to_reward(current_scores, done):
     if(not done):

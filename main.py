@@ -32,12 +32,15 @@ def main(player1_type, player2_type, hyper_parameters, settings):
         settings.tb_log = False
         settings.load = True
     bot = TreeSearchAgent(random,hyper_parameters,settings,"Bilbo")
+    bot.maybe_load()
+    bot_tensorboard = TreeSearchAgent(random,hyper_parameters,settings,"Frodo")
+    bot_tensorboard.maybe_log()
     if player1_type == "bot":
         m1 = bot
     elif player1_type == "random":
         m1 = RandomAgent(random)
     elif player1_type == "human":
-        m1 = HumanPlayer("alex")
+        m1 = HumanPlayer("alex", bot)
     else:
         m1 = AIAlgorithm()
     if player2_type == "bot":
@@ -45,14 +48,11 @@ def main(player1_type, player2_type, hyper_parameters, settings):
     elif player2_type == "random":
         m2 = RandomAgent(random)
     elif player2_type == "human":
-        m2 = HumanPlayer("erica")
+        m2 = HumanPlayer("erica", bot)
     else:
         m2 = AIAlgorithm()
     e = Environment(round_limit=hyper_parameters.round_limit, random_seed=hyper_parameters.ers)
-    wins = 0
-    losses = 0
-    ties = 0
-    assess_count = 0
+    tb_interval = 0
     for number_of_games in range(1,hyper_parameters.max_games):
         turn = e.reset()
         done = False
@@ -69,50 +69,44 @@ def main(player1_type, player2_type, hyper_parameters, settings):
             if(done):
                 if type(m1) == TreeSearchAgent and settings.reset_time == PER_GAME:
                     m1.clear()
-                if(current_scores[0]>current_scores[1]):
-                    wins += 1
-                elif(current_scores[1]<current_scores[0]):
-                    losses +=1
-                else:
-                    ties += 1
         if (number_of_games % hyper_parameters.accuracy_interval == 0):
             print()
-            print("win loss ratio: ",wins/(losses+wins+ties))
             print("Epoch: ",number_of_games)
             if type(m1) == TreeSearchAgent:
                 if settings.reset_time == PER_TRAIN:
                     m1.clear()
                 legal_ratio = m1.model.legal_moves/(m1.model.legal_moves+m1.model.illegal_moves)
                 total_moves = m1.model.legal_moves+m1.model.illegal_moves
-                print("for Epoch, legal:illegal moves ratio: ", m1.model.legal_moves/(m1.model.legal_moves+m1.model.illegal_moves))
                 print("for Epoch, total moves: ", m1.model.legal_moves+m1.model.illegal_moves)
-                player_metrics = PlayerMetrics(wins,losses,ties,legal_ratio,total_moves)
+                player_metrics = PlayerMetrics(total_moves)
                 m1.model.legal_moves = 0
                 m1.model.illegal_moves = 0
                 m1.model.model.save_weights("tmp.h5")
                 examples = copy.deepcopy(m1.model.examples)
-                m1_shadow = TreeSearchAgent(random,hyper_parameters,settings,"BilboShadow")
+                m1_shadow = TreeSearchAgent(random,hyper_parameters,settings,"CurrentModel")
                 m1_shadow.model.model.load_weights("tmp.h5")
                 m1_shadow.model.examples = examples
                 m1_shadow.train()
-                assess_count +=1
-                wins=assess_agent(m1_shadow, m1, e, hyper_parameters, assess_count, player_metrics)
-                print("Wins:", wins)
-                if (wins >= hyper_parameters.assess_model_games/2.0):
+                tb_interval +=1
+                wins = assess_agent(m1_shadow, m1, e, hyper_parameters)
+                # See if more than half the game are won. Ties count as .5.
+                if (wins > hyper_parameters.assess_model_games/2.0):
+                    print("Yayy")
                     m1 = m1_shadow
-                    print("model got better!!!!")
-                else:
-                    print("model got worse :(")
-                score_against_ai=assess_agent(m1, AIAlgorithm(), e, hyper_parameters, assess_count, player_metrics,True)
-                print("score against ai", score_against_ai)
-                total_score_against_ai+=score_against_ai
-                wins_against_random=assess_agent(m1, RandomAgent(random), e, hyper_parameters, assess_count, player_metrics)
-                print("wins against random", wins_against_random)
-            wins = 0
-            losses = 0
-            ties = 0
+                score_against_ai = assess_agent(m1, AIAlgorithm(), e, hyper_parameters, tb_interval=tb_interval, player_metrics=player_metrics, m_tensorboard=bot_tensorboard)
+                total_score_against_ai += score_against_ai
+                assess_agent(m1, RandomAgent(random), e, hyper_parameters)
+                m1_without_model = TreeSearchAgent(random,hyper_parameters,settings,"RandWithMCTS")
+                m1_without_model.model.use_model = False
+                assess_agent(m1, m1_without_model, e, hyper_parameters)
+                m1_without_ucb = TreeSearchAgent(random,hyper_parameters,settings,"SelfNoUCB")
+                m1_without_ucb.model.use_ucb = False
+                m1.model.model.save_weights("tmp.h5")
+                m1_without_ucb.model.model.load_weights("tmp.h5")
+                assess_agent(m1, m1_without_ucb, e, hyper_parameters)
+                m1.maybe_save()
             m1.clear()
-    return score_against_ai/assess_count
+    return score_against_ai/tb_interval
 
 
 if __name__ == "__main__":

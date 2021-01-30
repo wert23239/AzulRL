@@ -9,11 +9,11 @@ from util import human_print
 
 
 class HumanPlayer:
-    def __init__(self, name):
+    def __init__(self, name, tree_search_agent):
         random = RandomOrOverride()
         hyper_parameters = HyperParameters()
         self.name = name
-        self.tree_search_agent = TreeSearchAgent(random, hyper_parameters)
+        self.tree_search_agent = tree_search_agent
 
     def action(self,  environment):
         possible_actions = environment.possible_moves

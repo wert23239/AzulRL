@@ -37,6 +37,9 @@ def alpha_beta_find_state_value(alpha, beta, action, environment, depth):
 
 
 class AIAlgorithm:
+    def __init__(self):
+        self.name = "AI Algorithm"
+
     def action(self, environment, max_depth=1):
         best_val = None
         for action in environment.possible_moves:

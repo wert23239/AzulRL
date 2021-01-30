@@ -17,6 +17,7 @@ class TreeSearchAgent:
         self.r = random
         self.model = PolicyGradientModel(random, hyper_parameters, settings, name)
         self.visited = set()
+        self.name = name
 
     def action(self, environment):
         possible_actions_list = list(environment.possible_moves)
@@ -59,6 +60,15 @@ class TreeSearchAgent:
 
     def train(self):
         self.model.train()
+
+    def maybe_log(self):
+        self.model.maybe_log()
+
+    def maybe_load(self):
+        self.model.maybe_load()
+
+    def maybe_save(self):
+        self.model.maybe_save()
     
     def clear(self):
         self.model.clear()
