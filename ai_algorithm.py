@@ -18,7 +18,7 @@ def alpha_beta_find_state_value(alpha, beta, action, environment, depth):
     """
     turn = environment.turn
     e = copy.deepcopy(environment)
-    _, _, possible_actions, _, total_rewards, done = e.move(action)
+    _, _, _, possible_actions, _, total_rewards, done = e.move(action)
     if done or depth == 0:
         return total_rewards[turn] - total_rewards[(turn + 1) % 2]
 

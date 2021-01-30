@@ -51,7 +51,7 @@ def main(player1_type, player2_type, hyper_parameters, settings):
         m2 = HumanPlayer("erica", bot)
     else:
         m2 = AIAlgorithm()
-    e = Environment(round_limit=hyper_parameters.round_limit, random_seed=hyper_parameters.ers)
+    e = Environment(round_limit=hyper_parameters.round_limit, random_seed=hyper_parameters.ers, history_size=hyper_parameters.history_size)
     tb_interval = 0
     for number_of_games in range(1,hyper_parameters.max_games):
         turn = e.reset()
@@ -62,7 +62,7 @@ def main(player1_type, player2_type, hyper_parameters, settings):
             else:
                 player = m2
             action = player.action(e)
-            state, turn, _, score_delta, current_scores, done = e.move(action)
+            _, _, turn, _, score_delta, current_scores, done = e.move(action)
             if not is_playing_bot:
                 print("score delta: ", score_delta)
                 print("current scores: ", current_scores) 

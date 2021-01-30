@@ -13,10 +13,19 @@ def call_azul(learning_rate,num_simulations,ers,num_hl, hl_size, eps):
     # if(int(ers)>50):
     #     seed_param = int(ers)
     max_games =int(2000/int(1))
-    hyper_parameters = HyperParameters(max_games=max_games,assess_model_games=20,learning_rate=round(learning_rate,5),
-    accuracy_interval=100,pgr=SCORE,
-    num_simulations=int(num_simulations),ers=int(ers),round_limit=1,num_hl=int(num_hl),
-    hl_size=int(hl_size),eps=eps)
+    hyper_parameters = HyperParameters(
+        max_games=max_games,
+        assess_model_games=20,
+        learning_rate=round(learning_rate,5),
+        accuracy_interval=100,
+        pgr=SCORE,
+        num_simulations=int(num_simulations),
+        ers=int(ers),
+        round_limit=1,
+        num_hl=int(num_hl),
+        hl_size=int(hl_size),
+        eps=eps,
+        history_size=7)
     settings=Settings()
     return azul_main("bot","bot",hyper_parameters,settings)
 

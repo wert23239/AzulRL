@@ -9,11 +9,11 @@ class HyperParameters:
    # Number of games
    max_games: int = 100000
    # Number of games for the model to assess
-   assess_model_games : int = 10
+   assess_model_games : int = 5
    # How fast the model learns
    learning_rate: float = 0.0004
    # How many epoch to evaluate
-   accuracy_interval: int = 50
+   accuracy_interval: int = 1
    # Which value function to use
    pgr: int = SCORE 
    # How many simulations of tree search to run
@@ -28,3 +28,5 @@ class HyperParameters:
    hl_size: int = 235
    # Epsilon (controls exploration/exploitation).
    eps: float = 1e-8
+   # Number of states saved in history.
+   history_size: int = 7

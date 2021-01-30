@@ -104,7 +104,7 @@ else:
 e = Environment()
 
 while True:
-    state, turn, possible_actions = e.reset()
+    turn = e.reset()
     done = False
     previous_action = None
     previous_state = None
@@ -114,7 +114,7 @@ while True:
         else:
             player = m2
         a = player.action(state, possible_actions)
-        state, turn, possible_actions, reward, done = e.move(a, player)
+        state, history, turn, possible_actions, reward, done = e.move(a, player)
         player.save(reward, a, state, previous_action, previous_state)
         previous_action = a
         previous_state = state

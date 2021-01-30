@@ -56,7 +56,8 @@ class PolicyGradientModel:
         self.action_totals = defaultdict(int)
     
     def _create_model(self):
-        num_inputs = 1240
+        num_inputs = 1240 * self.hyper_parameters.history_size
+        print(num_inputs)
         self.num_actions = 180
 
         state_inputs = layers.Input(shape=(num_inputs,))
@@ -75,10 +76,10 @@ class PolicyGradientModel:
         self.model = keras.Model(inputs=[state_inputs,possible_action_inputs], outputs=action)
         self.model.compile(optimizer="Adam", loss="categorical_crossentropy")
 
-    def simulated_action(self, state, possible_actions, turn):
-        state = state.to_observable_state(turn)
-        state_string = state.tostring()
-        state = np.array([state])
+    def simulated_action(self, state, history, possible_actions, turn):
+        current_state = state.to_observable_state(turn)
+        state_string = current_state.tostring()
+        history_encoded = np.array([np.array(history).flatten()])
         possible_actions_encoded = self.encode_possible_actions(possible_actions,True)
         # Predict action probabilities and estimated future rewards
         # from environment state
@@ -86,7 +87,8 @@ class PolicyGradientModel:
         if not self.use_model:
             action_probs = self.random_action_distribution(possible_actions)
         else:
-            action_probs = np.squeeze(self.model.predict([state,possible_actions_encoded]))
+            action_probs = self.model.predict([history_encoded, possible_actions_encoded])
+            action_probs = np.squeeze(action_probs)
         self.legal_moves += 1
 
         action = None
@@ -117,7 +119,8 @@ class PolicyGradientModel:
         # The key is a pair of encoded state and encoded action.
         self.action_totals[(state, self.encode_action(action))] += score
     
-    def real_action(self,state,possible_actions,turn):
+    def real_action(self, state, history, possible_actions, turn):
+        history_encoded = np.array(history).flatten()
         state = state.to_observable_state(turn)
         state_string = state.tostring()
         total_count = self.state_counts[state_string]
@@ -125,26 +128,25 @@ class PolicyGradientModel:
         for action in possible_actions:
             policy_vector[self.encode_action(action)]=self.action_counts[(state_string, self.encode_action(action))]/total_count
         action_choosen = self.random_or_override.weighted_random_choice(len(policy_vector), policy_vector)
-        example = Example(policy_vector,possible_actions,state)
+        example = Example(policy_vector, possible_actions, history_encoded)
         self.examples.append(example)
         return self._convert_action_num(action_choosen)
     
     def train(self):
-        states = np.array([example.state for example in self.examples])
+        histories = np.array([example.history for example in self.examples])
         possible_actions = [self.encode_possible_actions(example.possible_actions,False) for example in self.examples]
         possible_actions_tensor = tf.convert_to_tensor(np.array(possible_actions),dtype=tf.float32)
         policy_vector = np.array([example.policy_vector for example in self.examples])
-        self.model.fit([states,possible_actions_tensor],policy_vector,batch_size=64,epochs=10,verbose = 0)
+        self.model.fit([histories, possible_actions_tensor], policy_vector, batch_size=64, epochs=10, verbose = 0)
     
     def clear(self):
         self._reset_state_and_action_counts()
 
 
-    def no_op_action(self, state, possible_actions, turn):
-        state = state.to_observable_state(turn)
-        state = np.array([state])
+    def no_op_action(self, history, possible_actions, turn):
+        history_encoded = np.array([np.array(history).flatten()])
         possible_actions_encoded = self.encode_possible_actions(possible_actions,True)
-        action_probs = self.model.predict([state,possible_actions_encoded],callbacks=[self.tensorboard])
+        action_probs = self.model.predict([history_encoded, possible_actions_encoded],callbacks=[self.tensorboard])
 
     def _upper_confidence_bound(self, state, action_probs, possible_actions):
         best_action = (-1, -np.inf)

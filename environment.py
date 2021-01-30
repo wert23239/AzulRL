@@ -4,15 +4,21 @@ from environment_state import EnvironmentState
 import random
 from random_or_override import RandomOrOverride
 from action import Action
+from collections import deque
+import numpy as np
 
 
 class Environment:
-    def __init__(self, round_limit=None, random_override=[], random_seed=None):
+    def __init__(self, round_limit=None, random_override=[], random_seed=None, history_size=7):
         self.random_override = random_override
         self.random_seed = random_seed
         self.round_limit = round_limit
+        self.history_size = history_size
+        self.history = deque(maxlen=history_size)
 
     def reset(self):
+        for i in range(self.history_size):
+            self.history.append(np.unpackbits(np.array([0] * 155, dtype=np.uint8)))
         self.random_or_override = RandomOrOverride(override=self.random_override, seed=self.random_seed)
         self.turn = self.random_or_override.random_range(0, 1)
         self.previous_rewards = [0, 0]  # players 1 and 2 both have scores of 0
@@ -60,6 +66,7 @@ class Environment:
         )
         self.deal_tiles()
         self.find_possible_moves()
+        self.history.append(self.state.to_observable_state(self.turn))
         return self.turn
 
     def move(self, action):
@@ -106,7 +113,8 @@ class Environment:
         else:
             self.turn = (self.turn + 1) % 2
         self.find_possible_moves()
-        return self.state, self.turn, set(self.possible_moves), net_reward, self.total_rewards, self.done
+        self.history.append(self.state.to_observable_state(self.turn))
+        return self.state, self.history, self.turn, set(self.possible_moves), net_reward, self.total_rewards, self.done
 
     def prepare_next_round(self):
         # Put tiles from both players' filled rows into the box.

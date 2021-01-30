@@ -69,7 +69,7 @@ def assess_agent(m1, m2, e, hyper_parameters, tb_interval=0, player_metrics=None
                 player = m2
             previous_turn = turn
             action = player.action(e)
-            state, turn, _, score_delta, current_scores, done = e.move(action)
+            state, history, turn, _, score_delta, current_scores, done = e.move(action)
             if done:
                 total_score += current_scores[0] - current_scores[1]
                 total_reward += score_to_reward(current_scores, done)
@@ -88,7 +88,7 @@ def assess_agent(m1, m2, e, hyper_parameters, tb_interval=0, player_metrics=None
     if m_tensorboard is not None and hasattr(m_tensorboard.model, 'tensorboard'):
         m_tensorboard.model.tensorboard.step = tb_interval
         turn = e.reset()
-        m_tensorboard.model.no_op_action(e.state,e.possible_moves,turn)
+        m_tensorboard.model.no_op_action(e.history, e.possible_moves, turn)
         m_tensorboard.model.tensorboard.update_stats(
             avg_score=avg_score,
             max_score=max_score,

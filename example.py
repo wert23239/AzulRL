@@ -5,4 +5,4 @@ from dataclasses import dataclass, field
 class Example:
    policy_vector: int = -1
    possible_actions : list = field(default_factory=list)
-   state: list = field(default_factory=list)
+   history: list = field(default_factory=list)
