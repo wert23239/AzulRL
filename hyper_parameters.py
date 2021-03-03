@@ -13,7 +13,7 @@ class HyperParameters:
    # How fast the model learns
    learning_rate: float = 0.0004
    # How many epoch to evaluate
-   accuracy_interval: int = 1
+   accuracy_interval: int = 2
    # Which value function to use
    pgr: int = SCORE 
    # How many simulations of tree search to run
@@ -29,4 +29,6 @@ class HyperParameters:
    # Epsilon (controls exploration/exploitation).
    eps: float = 1e-8
    # Number of states saved in history.
-   history_size: int = 7
+   history_size: int = 1
+   # Whether to convert the observable state from an int array to a bit array.
+   convert_to_bitmap: bool = False

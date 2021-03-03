@@ -8,10 +8,14 @@ from hyper_parameters import HyperParameters
 from main import main as azul_main
 
 
-def call_azul(learning_rate,num_simulations,ers,num_hl, hl_size, eps):
+def call_azul(learning_rate,num_simulations,ers,num_hl, hl_size, eps, history_size, convert_to_bitmap):
     # seed_param = None
     # if(int(ers)>50):
     #     seed_param = int(ers)
+    convert_to_bitmap_bool = False
+    print(convert_to_bitmap)
+    if convert_to_bitmap > 0.5:
+        convert_to_bitmap_bool = True
     max_games =int(2000/int(1))
     hyper_parameters = HyperParameters(
         max_games=max_games,
@@ -25,14 +29,15 @@ def call_azul(learning_rate,num_simulations,ers,num_hl, hl_size, eps):
         num_hl=int(num_hl),
         hl_size=int(hl_size),
         eps=eps,
-        history_size=7)
+        history_size=1,
+        convert_to_bitmap=convert_to_bitmap_bool)
     settings=Settings()
     return azul_main("bot","bot",hyper_parameters,settings)
 
 # Bounded region of parameter space
 pbounds = {'learning_rate': (.0001,.01),
-           'num_simulations':(20,50.9999999),'ers':(0,100),
-           'num_hl':(1,5.999),'hl_size':(64,512),'eps':(1e-8,1e-6)}
+           'num_simulations':(1,50.9999999),'ers':(71,71),
+           'num_hl':(1,5.999),'hl_size':(64,512),'eps':(1e-8,1e-6),'convert_to_bitmap':(0, 1)}
 
 optimizer = BayesianOptimization(
     f=call_azul,

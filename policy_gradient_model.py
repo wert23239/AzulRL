@@ -56,8 +56,10 @@ class PolicyGradientModel:
         self.action_totals = defaultdict(int)
     
     def _create_model(self):
-        num_inputs = 1240 * self.hyper_parameters.history_size
-        print(num_inputs)
+        if self.hyper_parameters.convert_to_bitmap:
+            num_inputs = 1200 * self.hyper_parameters.history_size
+        else:
+            num_inputs = 150 * self.hyper_parameters.history_size
         self.num_actions = 180
 
         state_inputs = layers.Input(shape=(num_inputs,))

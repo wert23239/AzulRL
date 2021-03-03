@@ -9,12 +9,13 @@ import numpy as np
 
 
 class Environment:
-    def __init__(self, round_limit=None, random_override=[], random_seed=None, history_size=7):
+    def __init__(self, round_limit=None, random_override=[], random_seed=None, history_size=7, convert_to_bitmap=True):
         self.random_override = random_override
         self.random_seed = random_seed
         self.round_limit = round_limit
         self.history_size = history_size
         self.history = deque(maxlen=history_size)
+        self.convert_to_bitmap = convert_to_bitmap
 
     def reset(self):
         for i in range(self.history_size):
@@ -62,7 +63,8 @@ class Environment:
             [empty_floors_1, empty_floors_2],  # floors
             UNASSIGNED,  # one_piece
             [[], [], [], [], []],  # circles
-            []  # center
+            [],  # center
+            self.convert_to_bitmap
         )
         self.deal_tiles()
         self.find_possible_moves()

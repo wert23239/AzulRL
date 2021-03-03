@@ -5,7 +5,7 @@ import numpy as np
 
 class EnvironmentState:
     def __init__(self, tile_locations, mosaics, triangles, mosaic_bonuses,
-                 floors, one_piece, circles, center):
+                 floors, one_piece, circles, center, convert_to_bitmap):
         # Map from colors, to map from location to counts.
         self.tile_locations = tile_locations
         # List containing 2 5x5 arrays of colors.
@@ -25,6 +25,8 @@ class EnvironmentState:
         self.circles = circles
         # array of colors.
         self.center = center
+
+        self.convert_to_bitmap = convert_to_bitmap
 
     def get_mosaics_in_order(self, player):
       return [self.mosaics[player], self.mosaics[(player + 1) % 2]]
@@ -69,7 +71,7 @@ class EnvironmentState:
         # Handle the tile locations list first
         tile_locations_list = [
             [
-                color,
+                # color,
                 self.tile_locations[color][IN_PLAY],
                 self.tile_locations[color][OUT_OF_PLAY],
                 self.tile_locations[color][OUT_OF_PLAY_TEMP],
@@ -110,7 +112,10 @@ class EnvironmentState:
         circles_list = [column for row in circles_array for column in row]
         observable_state += \
             floors_list + [self.get_mirrored_one_piece(turn)] + circles_list + center_list
-        return np.unpackbits(np.array(observable_state, dtype=np.uint8))
+        if self.convert_to_bitmap:
+          return np.unpackbits(np.array(observable_state, dtype=np.uint8))
+        else:
+          return np.array(observable_state)
 
     def to_hashable_state(self, turn):
         return self.to_observable_state(turn).tostring()
